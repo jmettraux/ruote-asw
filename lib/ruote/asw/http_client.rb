@@ -48,6 +48,7 @@ module Ruote::Asw
 
       kla =
         case meth
+          when :put then Net::HTTP::Put
           when :post then Net::HTTP::Post
           else Net::HTTP::Get
         end
@@ -65,6 +66,11 @@ module Ruote::Asw
       def initialize(res)
 
         @res = res
+      end
+
+      def code
+
+        @res.code.to_i
       end
 
       def body

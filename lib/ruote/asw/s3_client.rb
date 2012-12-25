@@ -45,6 +45,8 @@ module Ruote::Asw
     end
 
     def put(fname, content)
+
+      request(:put, fname, content)
     end
 
     def get(fname)
@@ -53,6 +55,8 @@ module Ruote::Asw
     end
 
     def delete(fname)
+
+      raise NotImplementedError
     end
 
     def purge
@@ -76,8 +80,12 @@ module Ruote::Asw
 
       headers['date'] ||= Time.now.rfc822
 
-      headers['content-md5'] =
-        Base64.encode64(Digest::MD5.digest(body)).strip if body
+      if body
+        headers['content-type'] =
+          'text/plain'
+        headers['content-md5'] =
+          Base64.encode64(Digest::MD5.digest(body)).strip
+      end
 
       headers['authorization'] =
         [
@@ -122,10 +130,7 @@ module Ruote::Asw
     def canonicalized_resource(uri)
 
       r = []
-
-      bucket = (uri.host.match(/^(.+)\.s3\.amazonaws\.com/) || [])[1]
-      r << "/#{bucket}" if bucket
-
+      r << "/#{@bucket}"
       r << uri.path
 
       #q = query_string.select { |k, v|

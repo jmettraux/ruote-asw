@@ -18,7 +18,16 @@ describe Ruote::Asw::S3Client do
 
   describe '#put' do
 
-    it 'works'
+    it 'uploads a file to S3' do
+
+      fname = "s3_spec_#{Time.now.to_i}_#{$$}_#{Thread.object_id}.txt"
+
+      r = client.put(fname, 'test 1 2 3')
+
+      r.code.should == 200
+
+      client.get(fname).body.should == 'test 1 2 3'
+    end
   end
 
   describe '#get' do
@@ -28,6 +37,8 @@ describe Ruote::Asw::S3Client do
       client.get('hello.txt').body.should ==
         "hello from Tokyo S3\n"
     end
+
+    it 'returns nil if the file does not exist'
   end
 
   describe '#delete' do

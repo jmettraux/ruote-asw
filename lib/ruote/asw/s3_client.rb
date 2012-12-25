@@ -22,6 +22,8 @@
 # Made in Japan.
 #++
 
+require 'cgi'
+
 require 'ruote/asw/http_client'
 
 
@@ -76,9 +78,11 @@ module Ruote::Asw
       end
     end
 
-    def list
+    def list(prefix=nil)
 
-      r = request(:get, '')
+      path = prefix ? "?prefix=#{CGI.escape(prefix)}" : ''
+
+      r = request(:get, path)
 
       r.scan(/<Key>([^<]+)<\/Key>/).collect(&:first)
     end

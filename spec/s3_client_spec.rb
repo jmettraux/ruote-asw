@@ -78,6 +78,16 @@ describe Ruote::Asw::S3Client do
         l.class.should == Array
         (fnames - l).should == []
       end
+
+      it 'accepts a prefix argument' do
+
+        fnames = %w[ alfred.txt alice.txt bob.txt ]
+        fnames.each { |fn| client.put(fn, fn) }
+
+        l = client.list('al')
+
+        l.should == %w[ alfred.txt alice.txt ]
+      end
     end
 
     describe '#purge' do

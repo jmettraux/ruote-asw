@@ -22,7 +22,7 @@ MIT, see LICENSE.txt
 
 ## feedback
 
-mailing list : http://groups.google.com/group/openwferu-users
-irc : irc.freenode.net #ruote
+* mailing list : http://groups.google.com/group/openwferu-users
+* irc : irc.freenode.net #ruote
 
 

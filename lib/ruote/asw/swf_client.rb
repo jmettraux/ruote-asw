@@ -22,13 +22,8 @@
 # Made in Japan.
 #++
 
-require 'time'
-require 'base64'
-require 'openssl'
-require 'net/http/persistent'
-
 require 'ruote/util/misc'
-require 'ruote/asw/version'
+require 'ruote/asw/http_client'
 
 
 module Ruote::Asw
@@ -43,13 +38,15 @@ module Ruote::Asw
       @sak = aws_secret_access_key
       @opts = opts
 
-      @endpoint = (opts['endpoint'] || DEFAULT_ENDPOINT).chomp('/')
+      endpoint = (opts['endpoint'] || DEFAULT_ENDPOINT).chomp('/')
+      @uri = URI.parse(endpoint + '/')
+      @host = endpoint.split('/').last
 
       raise ArgumentError.new(
         'invalid AWS access key and/or secret access key'
       ) unless (@aki && @sak)
 
-      @http = Net::HTTP::Persistent.new('asw')
+      @http = HttpClient.new('ruote_asw_swf')
       @http.read_timeout = opts['swf_read_timeout'] || 70
     end
 
@@ -78,7 +75,7 @@ module Ruote::Asw
 
       headers = {}
 
-      headers['host'] = @endpoint.split('/').last
+      headers['host'] = @host
 
       headers['x-amz-date'] =
         Time.now.utc.httpdate
@@ -92,14 +89,7 @@ module Ruote::Asw
       headers['content-type'] = 'application/json; charset=UTF-8'
       headers['content-encoding'] = 'amz-1.0'
 
-      uri = URI.parse(@endpoint + '/')
-
-      req = Net::HTTP::Post.new(uri.path, headers)
-      req.body = body
-
-      r = @http.request(uri, req)
-
-      Rufus::Json.decode(r.body)
+      @http.post(@uri, headers, body).from_json
     end
 
     # Amazon signature version 3.

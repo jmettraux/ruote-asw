@@ -59,6 +59,13 @@ module Ruote::Asw
       request(:delete, fname)
     end
 
+    def list
+
+      r = request(:get, '')
+
+      r.scan(/<Key>([^<]+)<\/Key>/).collect(&:first)
+    end
+
     def purge
 
       raise NotImplementedError
@@ -73,7 +80,15 @@ module Ruote::Asw
 
       sign(meth, uri, headers, body)
 
-      @http.request(meth, uri, headers, body)
+      r = @http.request(meth, uri, headers, body)
+
+      if [ 200, 204 ].include?(r.code)
+        meth == :get ? r.body : nil
+      elsif [ 404 ].include?(r.code) && meth == :get
+        nil
+      else
+        r
+      end
     end
 
     def sign(meth, uri, headers, body)

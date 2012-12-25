@@ -34,8 +34,10 @@ describe Ruote::Asw::S3Client do
 
     it 'retrieves a file from S3' do
 
-      client.get('hello.txt').body.should ==
-        "hello from Tokyo S3\n"
+      fname = "s3_spec_#{Time.now.to_i}_#{$$}_#{Thread.object_id}.txt"
+      client.put(fname, "hello from Tokyo S3\n")
+
+      client.get(fname).body.should == "hello from Tokyo S3\n"
     end
   end
 
@@ -44,15 +46,13 @@ describe Ruote::Asw::S3Client do
     it 'deletes a file' do
 
       fname = "s3_spec_#{Time.now.to_i}_#{$$}_#{Thread.object_id}.txt"
-      r = client.put(fname, 'test 3 2 1')
+      client.put(fname, 'test 3 2 1')
 
       r = client.delete(fname)
 
       r.code.should == 204
 
-      r = client.get(fname)
-
-      r.code.should == 404
+      client.get(fname).code.should == 404
     end
   end
 

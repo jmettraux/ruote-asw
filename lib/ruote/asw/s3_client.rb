@@ -54,9 +54,24 @@ module Ruote::Asw
       request(:get, fname)
     end
 
-    def delete(fname)
+    def delete(fname_s)
 
-      request(:delete, fname)
+      if fname_s.is_a?(Array)
+
+        d = []
+        d << '<?xml version="1.0" encoding="UTF-8"?>'
+        #d << '<Quiet>true</Quiet>'
+        d << '<Delete>'
+        fname_s.each { |n| d << "<Object><Key>#{n}</Key></Object>" }
+        d << '</Delete>'
+        d = d.join("\n")
+
+        request(:post, '?delete', d)
+
+      else
+
+        request(:delete, fname_s)
+      end
     end
 
     def list
@@ -68,7 +83,13 @@ module Ruote::Asw
 
     def purge
 
-      raise NotImplementedError
+      l = list
+
+      return if l.empty?
+
+      delete(l)
+
+      purge if l.size >= 1000
     end
 
     protected
@@ -96,8 +117,16 @@ module Ruote::Asw
       headers['date'] ||= Time.now.rfc822
 
       if body
+
         headers['content-type'] =
-          'text/plain'
+          if body.match(/^<\?xml/)
+            #'multipart/form-data'
+            'application/xml'
+          else
+            'text/plain'
+          end
+        #headers['content-type'] = 'text/plain' unless body.match(/^<\?xml/)
+
         headers['content-md5'] =
           Base64.encode64(Digest::MD5.digest(body)).strip
       end
@@ -156,6 +185,8 @@ module Ruote::Asw
       #  "#{k}=#{v}"
       #}
       #r << '?' + q.join('&') if q.any?
+
+      r << '?delete' if uri.query == 'delete'
 
       r.join
     end

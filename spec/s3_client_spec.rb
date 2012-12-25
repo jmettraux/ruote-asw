@@ -27,12 +27,10 @@ describe Ruote::Asw::S3Client do
 
       fname = new_fname
 
-      client.put(fname, 'test 1 2 3')
+      r = client.put(fname, 'test 1 2 3')
 
+      r.should == nil
       client.get(fname).should == 'test 1 2 3'
-    end
-
-    it 'returns XXX in case of success' do
     end
   end
 
@@ -41,9 +39,9 @@ describe Ruote::Asw::S3Client do
     it 'retrieves a file from S3' do
 
       fname = new_fname
-      client.put(fname, "hello from Tokyo S3\n")
+      client.put(fname, 'hello from Tokyo S3')
 
-      client.get(fname).should == "hello from Tokyo S3\n"
+      client.get(fname).should == 'hello from Tokyo S3'
     end
 
     it 'returns nil if there is no file' do
@@ -62,7 +60,6 @@ describe Ruote::Asw::S3Client do
       r = client.delete(fname)
 
       r.should == nil
-
       client.get(fname).should == nil
     end
   end
@@ -83,7 +80,16 @@ describe Ruote::Asw::S3Client do
 
   describe '#purge' do
 
-    it 'deletes all the files in the bucket'
+    it 'deletes all the files in the bucket' do
+
+      fnames = [ new_fname, new_fname, new_fname ]
+      fnames.each { |fn| client.put(fn, 'oh hai!') }
+
+      r = client.purge
+
+      r.should == nil
+      client.list.should == []
+    end
   end
 end
 

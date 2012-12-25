@@ -55,8 +55,9 @@ module Ruote::Asw
         end
 
       uri = URI.parse(uri) unless uri.is_a?(URI)
+      path = [ uri.path, uri.query ].compact.join('?')
 
-      req = kla.new(uri.path, headers)
+      req = kla.new(path, headers)
       req.body = body if body
 
       Response.new(@http.request(uri, req))

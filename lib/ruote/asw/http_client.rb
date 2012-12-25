@@ -44,11 +44,18 @@ module Ruote::Asw
       @http.read_timeout = seconds
     end
 
-    def post(uri, headers, body)
+    def request(meth, uri, headers, body)
+
+      kla =
+        case meth
+          when :post then Net::HTTP::Post
+          else Net::HTTP::Get
+        end
 
       uri = URI.parse(uri) unless uri.is_a?(URI)
-      req = Net::HTTP::Post.new(uri.path, headers)
-      req.body = body
+
+      req = kla.new(uri.path, headers)
+      req.body = body if body
 
       Response.new(@http.request(uri, req))
     end
@@ -58,6 +65,11 @@ module Ruote::Asw
       def initialize(res)
 
         @res = res
+      end
+
+      def body
+
+        @res.body
       end
 
       def from_json

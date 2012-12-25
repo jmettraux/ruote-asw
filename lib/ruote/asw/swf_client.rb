@@ -89,7 +89,7 @@ module Ruote::Asw
       headers['content-type'] = 'application/json; charset=UTF-8'
       headers['content-encoding'] = 'amz-1.0'
 
-      @http.post(@uri, headers, body).from_json
+      @http.request(:post, @uri, headers, body).from_json
     end
 
     # Amazon signature version 3.

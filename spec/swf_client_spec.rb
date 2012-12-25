@@ -18,7 +18,7 @@ describe Ruote::Asw::SwfClient do
 
   describe '#list_domains' do
 
-    it 'works' do
+    it 'lists SWF domains' do
 
       h = client.list_domains(:registration_status => 'REGISTERED')
 

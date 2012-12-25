@@ -25,7 +25,8 @@ describe Ruote::Asw::S3Client do
 
     it 'retrieves a file from S3' do
 
-      pp client.get('hello.txt')
+      client.get('hello.txt').body.should ==
+        "hello from Tokyo S3\n"
     end
   end
 

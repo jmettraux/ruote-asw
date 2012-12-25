@@ -75,6 +75,11 @@ module Ruote::Asw
         @res.code.to_i
       end
 
+      def headers
+
+        h = {}; @res.each_header { |k, v| h[k] = v }; h
+      end
+
       def body
 
         @res.body

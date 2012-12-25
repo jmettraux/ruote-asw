@@ -50,6 +50,7 @@ module Ruote::Asw
         case meth
           when :put then Net::HTTP::Put
           when :post then Net::HTTP::Post
+          when :delete then Net::HTTP::Delete
           else Net::HTTP::Get
         end
 

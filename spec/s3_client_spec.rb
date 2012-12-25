@@ -37,13 +37,28 @@ describe Ruote::Asw::S3Client do
       client.get('hello.txt').body.should ==
         "hello from Tokyo S3\n"
     end
-
-    it 'returns nil if the file does not exist'
   end
 
   describe '#delete' do
 
-    it 'deletes a file'
+    it 'deletes a file' do
+
+      fname = "s3_spec_#{Time.now.to_i}_#{$$}_#{Thread.object_id}.txt"
+      r = client.put(fname, 'test 3 2 1')
+
+      r = client.delete(fname)
+
+      r.code.should == 204
+
+      r = client.get(fname)
+
+      r.code.should == 404
+    end
+  end
+
+  describe '#list' do
+
+    it 'lists the filenames in the bucket'
   end
 
   describe '#purge' do

@@ -56,7 +56,7 @@ module Ruote::Asw
 
     def delete(fname)
 
-      raise NotImplementedError
+      request(:delete, fname)
     end
 
     def purge

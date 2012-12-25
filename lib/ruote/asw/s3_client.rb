@@ -92,10 +92,16 @@ module Ruote::Asw
       purge if l.size >= 1000
     end
 
-    def create_bucket
+    def self.create_bucket(aws_access_key_id, aws_secret_access_key, bucket)
+
+      client = self.new(aws_access_key_id, aws_secret_access_key, bucket)
+      client.send(:request, :put, '')
     end
 
-    def delete_bucket
+    def self.delete_bucket(aws_access_key_id, aws_secret_access_key, bucket)
+
+      client = self.new(aws_access_key_id, aws_secret_access_key, bucket)
+      client.send(:request, :delete, '')
     end
 
     def self.list_buckets(aws_access_key_id, aws_secret_access_key)

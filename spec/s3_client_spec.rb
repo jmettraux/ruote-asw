@@ -97,6 +97,20 @@ describe Ruote::Asw::S3Client do
 
   context 'bucket creation/deletion' do
 
+    after(:each) do
+      #
+      # delete all the transient test buckets
+
+      l = Ruote::Asw::S3Client.list_buckets(
+        ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'])
+
+      l.each do |n|
+        next unless n.match(/^ruote-aws-s3-spec-\d+$/)
+        Ruote::Asw::S3Client.delete_bucket(
+          ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], n)
+      end
+    end
+
     describe '.list_buckets' do
 
       it 'lists the buckets in the account' do
@@ -108,14 +122,41 @@ describe Ruote::Asw::S3Client do
       end
     end
 
-    describe '#create_bucket' do
+    describe '.create_bucket' do
 
-      it 'creates a bucket'
+      it 'creates a bucket' do
+
+        bucket = "ruote-aws-s3-spec-#{Time.now.to_i}#{$$}#{Thread.object_id}"
+
+        r = Ruote::Asw::S3Client.create_bucket(
+          ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], bucket)
+
+        r.should == nil
+
+        l = Ruote::Asw::S3Client.list_buckets(
+          ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'])
+
+        l.should include(bucket)
+      end
     end
 
-    describe '#delete_bucket' do
+    describe '.delete_bucket' do
 
-      it 'deletes a bucket'
+      it 'deletes a bucket' do
+
+        bucket = "ruote-aws-s3-spec-#{Time.now.to_i}#{$$}#{Thread.object_id}"
+
+        Ruote::Asw::S3Client.create_bucket(
+          ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], bucket)
+
+        r = Ruote::Asw::S3Client.delete_bucket(
+          ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], bucket)
+
+        l = Ruote::Asw::S3Client.list_buckets(
+          ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'])
+
+        l.should_not include(bucket)
+      end
     end
   end
 end

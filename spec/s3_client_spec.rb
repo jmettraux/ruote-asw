@@ -10,85 +10,112 @@ require 'spec_helper'
 
 describe Ruote::Asw::S3Client do
 
-  def new_fname
+  context 'routine operation' do
 
-    "s3_spec_#{Time.now.to_i}_#{$$}_#{Thread.object_id}.txt"
-  end
+    def new_fname
 
-  let(:client) {
+      "s3_spec_#{Time.now.to_i}_#{$$}_#{Thread.object_id}.txt"
+    end
 
-    Ruote::Asw::S3Client.new(
-      ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], 'ruote-asw')
-  }
+    let(:client) {
 
-  describe '#put' do
+      Ruote::Asw::S3Client.new(
+        ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], 'ruote-asw')
+    }
 
-    it 'uploads a file to S3' do
+    describe '#put' do
 
-      fname = new_fname
+      it 'uploads a file to S3' do
 
-      r = client.put(fname, 'test 1 2 3')
+        fname = new_fname
 
-      r.should == nil
-      client.get(fname).should == 'test 1 2 3'
+        r = client.put(fname, 'test 1 2 3')
+
+        r.should == nil
+        client.get(fname).should == 'test 1 2 3'
+      end
+    end
+
+    describe '#get' do
+
+      it 'retrieves a file from S3' do
+
+        fname = new_fname
+        client.put(fname, 'hello from Tokyo S3')
+
+        client.get(fname).should == 'hello from Tokyo S3'
+      end
+
+      it 'returns nil if there is no file' do
+
+        client.get('nada.txt').should == nil
+      end
+    end
+
+    describe '#delete' do
+
+      it 'deletes a file' do
+
+        fname = new_fname
+        client.put(fname, 'test 3 2 1')
+
+        r = client.delete(fname)
+
+        r.should == nil
+        client.get(fname).should == nil
+      end
+    end
+
+    describe '#list' do
+
+      it 'lists the filenames in the bucket' do
+
+        fnames = [ new_fname, new_fname, new_fname ]
+        fnames.each { |fn| client.put(fn, 'oh hai!') }
+
+        l = client.list
+
+        l.class.should == Array
+        (fnames - l).should == []
+      end
+    end
+
+    describe '#purge' do
+
+      it 'deletes all the files in the bucket' do
+
+        fnames = [ new_fname, new_fname, new_fname ]
+        fnames.each { |fn| client.put(fn, 'oh hai!') }
+
+        r = client.purge
+
+        r.should == nil
+        client.list.should == []
+      end
     end
   end
 
-  describe '#get' do
+  context 'bucket creation/deletion' do
 
-    it 'retrieves a file from S3' do
+    describe '.list_buckets' do
 
-      fname = new_fname
-      client.put(fname, 'hello from Tokyo S3')
+      it 'lists the buckets in the account' do
 
-      client.get(fname).should == 'hello from Tokyo S3'
+        l = Ruote::Asw::S3Client.list_buckets(
+          ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'])
+
+        l.should include('ruote-asw')
+      end
     end
 
-    it 'returns nil if there is no file' do
+    describe '#create_bucket' do
 
-      client.get('nada.txt').should == nil
+      it 'creates a bucket'
     end
-  end
 
-  describe '#delete' do
+    describe '#delete_bucket' do
 
-    it 'deletes a file' do
-
-      fname = new_fname
-      client.put(fname, 'test 3 2 1')
-
-      r = client.delete(fname)
-
-      r.should == nil
-      client.get(fname).should == nil
-    end
-  end
-
-  describe '#list' do
-
-    it 'lists the filenames in the bucket' do
-
-      fnames = [ new_fname, new_fname, new_fname ]
-      fnames.each { |fn| client.put(fn, 'oh hai!') }
-
-      l = client.list
-
-      l.class.should == Array
-      (fnames - l).should == []
-    end
-  end
-
-  describe '#purge' do
-
-    it 'deletes all the files in the bucket' do
-
-      fnames = [ new_fname, new_fname, new_fname ]
-      fnames.each { |fn| client.put(fn, 'oh hai!') }
-
-      r = client.purge
-
-      r.should == nil
-      client.list.should == []
+      it 'deletes a bucket'
     end
   end
 end

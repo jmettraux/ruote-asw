@@ -92,11 +92,27 @@ module Ruote::Asw
       purge if l.size >= 1000
     end
 
+    def create_bucket
+    end
+
+    def delete_bucket
+    end
+
+    def self.list_buckets(aws_access_key_id, aws_secret_access_key)
+
+      client = self.new(aws_access_key_id, aws_secret_access_key, nil)
+      r = client.send(:request, :get, '')
+
+      r.scan(/<Name>([^<]+)<\/Name>/).collect(&:first)
+    end
+
     protected
 
     def request(meth, fname, body=nil)
 
-      uri = URI.parse("https://#{@bucket}.s3.amazonaws.com/#{fname}")
+      bucket = @bucket ? "#{@bucket}." : ''
+
+      uri = URI.parse("https://#{bucket}s3.amazonaws.com/#{fname}")
       headers = {}
 
       sign(meth, uri, headers, body)
@@ -174,7 +190,7 @@ module Ruote::Asw
     def canonicalized_resource(uri)
 
       r = []
-      r << "/#{@bucket}"
+      r << "/#{@bucket}" if @bucket
       r << uri.path
 
       #q = query_string.select { |k, v|

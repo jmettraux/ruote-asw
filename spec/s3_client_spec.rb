@@ -10,6 +10,9 @@ require 'spec_helper'
 
 describe Ruote::Asw::S3Client do
 
+  let(:aki) { ENV['AWS_ACCESS_KEY_ID'] }
+  let(:sak) { ENV['AWS_SECRET_ACCESS_KEY'] }
+
   context 'routine operation' do
 
     def new_fname
@@ -19,8 +22,7 @@ describe Ruote::Asw::S3Client do
 
     let(:client) {
 
-      Ruote::Asw::S3Client.new(
-        ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], 'ruote-asw')
+      Ruote::Asw::S3Client.new(aki, sak, 'ruote-asw')
     }
 
     describe '#put' do
@@ -116,13 +118,11 @@ describe Ruote::Asw::S3Client do
       #
       # delete all the transient test buckets
 
-      l = Ruote::Asw::S3Client.list_buckets(
-        ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'])
+      l = Ruote::Asw::S3Client.list_buckets(aki, sak)
 
       l.each do |n|
         next unless n.match(/^ruote-aws-s3-spec-\d+$/)
-        Ruote::Asw::S3Client.delete_bucket(
-          ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], n)
+        Ruote::Asw::S3Client.delete_bucket(aki, sak, n)
       end
     end
 
@@ -130,8 +130,7 @@ describe Ruote::Asw::S3Client do
 
       it 'lists the buckets in the account' do
 
-        l = Ruote::Asw::S3Client.list_buckets(
-          ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'])
+        l = Ruote::Asw::S3Client.list_buckets(aki, sak)
 
         l.should include('ruote-asw')
       end
@@ -143,13 +142,11 @@ describe Ruote::Asw::S3Client do
 
         bucket = new_bucket_name
 
-        r = Ruote::Asw::S3Client.create_bucket(
-          ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], bucket, 'edo')
+        r = Ruote::Asw::S3Client.create_bucket(aki, sak, bucket, 'edo')
 
         r.should == nil
 
-        l = Ruote::Asw::S3Client.list_buckets(
-          ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'])
+        l = Ruote::Asw::S3Client.list_buckets(aki, sak)
 
         l.should include(bucket)
       end
@@ -158,13 +155,26 @@ describe Ruote::Asw::S3Client do
 
         lambda {
 
-          Ruote::Asw::S3Client.create_bucket(
-            ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], 'x', '123')
+          Ruote::Asw::S3Client.create_bucket(aki, sak, 'x', '123')
 
         }.should raise_error(ArgumentError, 'unknown S3 region: "123"')
       end
 
-      it 'raises if the region does not exist (but matches the region name format)'
+      it 'raises if region does not exist (but matches region name format)' do
+
+        bucket = new_bucket_name
+
+        region = 'ap-gangnam-1' # south of the river
+
+        lambda {
+
+          Ruote::Asw::S3Client.create_bucket(aki, sak, bucket, region)
+
+        }.should raise_error(
+          ArgumentError,
+          "InvalidLocationConstraint: " +
+          "The specified location-constraint is not valid")
+      end
     end
 
     describe '.delete_bucket' do
@@ -173,14 +183,11 @@ describe Ruote::Asw::S3Client do
 
         bucket = new_bucket_name
 
-        Ruote::Asw::S3Client.create_bucket(
-          ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], bucket, 'edo')
+        Ruote::Asw::S3Client.create_bucket(aki, sak, bucket, 'edo')
 
-        r = Ruote::Asw::S3Client.delete_bucket(
-          ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], bucket)
+        r = Ruote::Asw::S3Client.delete_bucket(aki, sak, bucket)
 
-        l = Ruote::Asw::S3Client.list_buckets(
-          ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'])
+        l = Ruote::Asw::S3Client.list_buckets(aki, sak)
 
         l.should_not include(bucket)
       end

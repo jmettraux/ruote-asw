@@ -89,6 +89,18 @@ module Ruote::Asw
 
         Rufus::Json.decode(@res.body)
       end
+
+      def error_message
+
+        # for now only deals with S3 (XML) errors
+
+        return body unless body.match(/<Error>/)
+
+        code = body.match(/<Code>([^<]+)<\/Code>/)[1]
+        message = body.match(/<Message>([^<]+)<\/Message>/)[1]
+
+        "#{code}: #{message}"
+      end
     end
   end
 end

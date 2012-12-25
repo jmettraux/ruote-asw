@@ -173,12 +173,17 @@ module Ruote::Asw
         return request(meth, fname, body)
       end
 
-      if [ 200, 204 ].include?(r.code)
-        meth == :get ? r.body : nil
-      elsif [ 404 ].include?(r.code) && meth == :get
-        nil
-      else
-        r
+      # done, now respond
+
+      case r.code
+        when 200, 204; return r.body
+        when 404; return nil
+      end if meth == :get
+
+      case r.code
+        when 200, 204; nil
+        when 400..499; raise ArgumentError.new(r.error_message)
+        else r
       end
     end
 

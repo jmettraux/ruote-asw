@@ -97,6 +97,11 @@ describe Ruote::Asw::S3Client do
 
   context 'bucket creation/deletion' do
 
+    def new_bucket_name
+
+      "ruote-aws-s3-spec-#{Time.now.to_i}#{$$}#{Thread.object_id}"
+    end
+
     after(:each) do
       #
       # delete all the transient test buckets
@@ -126,10 +131,10 @@ describe Ruote::Asw::S3Client do
 
       it 'creates a bucket' do
 
-        bucket = "ruote-aws-s3-spec-#{Time.now.to_i}#{$$}#{Thread.object_id}"
+        bucket = new_bucket_name
 
         r = Ruote::Asw::S3Client.create_bucket(
-          ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], bucket)
+          ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], bucket, 'edo')
 
         r.should == nil
 
@@ -138,16 +143,28 @@ describe Ruote::Asw::S3Client do
 
         l.should include(bucket)
       end
+
+      it 'raises if the region is not a S3 region' do
+
+        lambda {
+
+          Ruote::Asw::S3Client.create_bucket(
+            ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], 'x', '123')
+
+        }.should raise_error(ArgumentError, 'unknown S3 region: "123"')
+      end
+
+      it 'raises if the region does not exist (but matches the region name format)'
     end
 
     describe '.delete_bucket' do
 
       it 'deletes a bucket' do
 
-        bucket = "ruote-aws-s3-spec-#{Time.now.to_i}#{$$}#{Thread.object_id}"
+        bucket = new_bucket_name
 
         Ruote::Asw::S3Client.create_bucket(
-          ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], bucket)
+          ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], bucket, 'edo')
 
         r = Ruote::Asw::S3Client.delete_bucket(
           ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], bucket)

@@ -39,6 +39,8 @@ module Ruote::Asw
         'invalid AWS access key and/or secret access key'
       ) unless (@aki && @sak)
 
+      @endpoint = 's3'
+
       @http = HttpClient.new('ruote_asw_s3')
 
       # TODO: create bucket
@@ -92,21 +94,52 @@ module Ruote::Asw
       purge if l.size >= 1000
     end
 
-    def self.create_bucket(aws_access_key_id, aws_secret_access_key, bucket)
+    #--
+    # bucket listing, creation/deletion
+    #++
 
-      client = self.new(aws_access_key_id, aws_secret_access_key, bucket)
-      client.send(:request, :put, '')
+    REGIONS =
+      [
+        %w[ eu-west-1 eu europe ireland euro ],
+        %w[ us-west-1 oregon ],
+        %w[ us-west-2 california cali norcal ],
+        %w[ ap-southeast-1 singapore ],
+        %w[ ap-southeast-2 sidney australia oz ],
+        %w[ ap-northeast-1 tokyo edo japan nippon yamato ],
+        %w[ sa-east-1 saopaulo brazil ]
+      ].inject({}) { |h, a| h[a.first] = a; h }
+
+
+    def self.create_bucket(access_key_id, secret_access_key, bucket, region)
+
+      region = region.to_s.downcase
+      reg, _ = REGIONS.find { |k, v| v.include?(region) }
+      reg = region if region.match(/^[a-z]{2}-[a-z]+-\d+$/)
+
+      raise ArgumentError.new(
+        "unknown S3 region: #{region.inspect}"
+      ) unless reg
+
+      doc = []
+      doc << '<?xml version="1.0" encoding="UTF-8"?>'
+      doc << '<CreateBucketConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">'
+      doc << "<LocationConstraint>#{reg}</LocationConstraint>"
+      doc << '</CreateBucketConfiguration>'
+      doc = doc.join("\n")
+
+      client = self.new(access_key_id, secret_access_key, bucket)
+      client.send(:request, :put, '', doc)
     end
 
-    def self.delete_bucket(aws_access_key_id, aws_secret_access_key, bucket)
+    def self.delete_bucket(access_key_id, secret_access_key, bucket)
 
-      client = self.new(aws_access_key_id, aws_secret_access_key, bucket)
+      client = self.new(access_key_id, secret_access_key, bucket)
       client.send(:request, :delete, '')
     end
 
-    def self.list_buckets(aws_access_key_id, aws_secret_access_key)
+    def self.list_buckets(access_key_id, secret_access_key)
 
-      client = self.new(aws_access_key_id, aws_secret_access_key, nil)
+      client = self.new(access_key_id, secret_access_key, nil)
       r = client.send(:request, :get, '')
 
       r.scan(/<Name>([^<]+)<\/Name>/).collect(&:first)
@@ -118,12 +151,23 @@ module Ruote::Asw
 
       bucket = @bucket ? "#{@bucket}." : ''
 
-      uri = URI.parse("https://#{bucket}s3.amazonaws.com/#{fname}")
+      uri = URI.parse("https://#{bucket}#{@endpoint}.amazonaws.com/#{fname}")
       headers = {}
 
       sign(meth, uri, headers, body)
 
       r = @http.request(meth, uri, headers, body)
+
+      if r.code == 307
+        #
+        # support for redirections
+        # most likely only helps .create_bucket and .delete_bucket
+
+        @endpoint =
+          r.body.match(/<Endpoint>([^<]+)<\/Endpoint>/)[1].split('.')[1]
+
+        return request(meth, fname, body)
+      end
 
       if [ 200, 204 ].include?(r.code)
         meth == :get ? r.body : nil

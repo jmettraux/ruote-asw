@@ -151,6 +151,14 @@ describe Ruote::Asw::S3Client do
         l.should include(bucket)
       end
 
+      it 'accepts a quiet option' do
+
+        r = Ruote::Asw::S3Client.create_bucket(
+          aki, sak, 'ruote-asw', 'edo', true)
+
+        r.should == nil
+      end
+
       it 'raises if the region is not a S3 region' do
 
         lambda {

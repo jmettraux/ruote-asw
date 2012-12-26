@@ -31,10 +31,10 @@ module Ruote::Asw
 
   class S3Client
 
-    def initialize(aws_access_key_id, aws_secret_access_key, bucket)
+    def initialize(access_key_id, secret_access_key, bucket)
 
-      @aki = aws_access_key_id
-      @sak = aws_secret_access_key
+      @aki = access_key_id
+      @sak = secret_access_key
       @bucket = bucket
 
       raise ArgumentError.new(
@@ -44,8 +44,6 @@ module Ruote::Asw
       @endpoint = 's3'
 
       @http = HttpClient.new('ruote_asw_s3')
-
-      # TODO: create bucket
     end
 
     def put(fname, content)
@@ -114,7 +112,9 @@ module Ruote::Asw
       ].inject({}) { |h, a| h[a.first] = a; h }
 
 
-    def self.create_bucket(access_key_id, secret_access_key, bucket, region)
+    def self.create_bucket(
+      access_key_id, secret_access_key, bucket, region, quiet=false
+    )
 
       region = region.to_s.downcase
       reg, _ = REGIONS.find { |k, v| v.include?(region) }
@@ -131,8 +131,14 @@ module Ruote::Asw
       doc << '</CreateBucketConfiguration>'
       doc = doc.join("\n")
 
-      client = self.new(access_key_id, secret_access_key, bucket)
-      client.send(:request, :put, '', doc)
+      client = self.new(access_key_id, secret_access_key, nil)
+
+      begin
+        client.send(:request, :put, bucket, doc)
+      rescue ArgumentError => ae
+        raise ae unless quiet && ae.message.match(/^BucketAlreadyOwnedByYou:/)
+        nil
+      end
     end
 
     def self.delete_bucket(access_key_id, secret_access_key, bucket)

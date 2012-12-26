@@ -29,7 +29,26 @@ module Ruote::Asw
 
     def self.log(client, meth, uri, headers, body, res)
 
-      # TODO
+      return unless dlevel['ht'] > 0
+
+      t = Time.now.strftime('%R:%S.%3N')
+
+      s = "        #{t} #{meth.upcase} #{uri.to_s}"
+      s += " #{res.code} #{res.duration}s" if res
+      puts(s)
+    end
+
+    def self.dlevel
+
+      {
+        'ht' => 0, 's3' => 0, 'sw' => 0
+      }.merge(
+        (ENV['RUOTE_ASW_DLEVEL'] || '').split(',').inject({}) { |h, v|
+          m = v.match(/^([a-z]+)(\d+)$/)
+          h[m[1][0, 2]] = m[2].to_i if m
+          h
+        }
+      )
     end
   end
 end

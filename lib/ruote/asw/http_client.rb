@@ -64,9 +64,10 @@ module Ruote::Asw
       req = kla.new(path, headers)
       req.body = body if body
 
+      t = Time.now
       log(meth, uri, headers, body)
 
-      res = Response.new(@http.request(uri, req))
+      res = Response.new(@http.request(uri, req), t)
 
       log(meth, uri, headers, body, res)
 
@@ -80,9 +81,13 @@ module Ruote::Asw
 
     class Response
 
-      def initialize(res)
+      attr_reader :start, :duration
+
+      def initialize(res, start)
 
         @res = res
+        @start = start
+        @duration = Time.now - start
       end
 
       def code

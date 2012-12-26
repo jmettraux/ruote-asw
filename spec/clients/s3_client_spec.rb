@@ -145,6 +145,15 @@ describe Ruote::Asw::S3Client do
 
         Ruote::Asw::S3Client.list_buckets(aki, sak).should_not include(bn)
       end
+
+      it 'is ok if the bucket already exists' do
+
+        Ruote::Asw::S3Client.list_buckets(aki, sak).should include('ruote-asw')
+
+        Ruote::Asw::S3Client.new(aki, sak, 'ruote-asw', 'edo')
+
+        Ruote::Asw::S3Client.list_buckets(aki, sak).should include('ruote-asw')
+      end
     end
 
     describe '.list_buckets' do

@@ -31,7 +31,7 @@ module Ruote::Asw
 
   class S3Client
 
-    def initialize(access_key_id, secret_access_key, bucket)
+    def initialize(access_key_id, secret_access_key, bucket, region=nil)
 
       @aki = access_key_id
       @sak = secret_access_key
@@ -44,6 +44,8 @@ module Ruote::Asw
       @endpoint = 's3'
 
       @http = HttpClient.new('ruote_asw_s3')
+
+      self.class.create_bucket(@aki, @sak, bucket, region, true) if region
     end
 
     def put(fname, content)

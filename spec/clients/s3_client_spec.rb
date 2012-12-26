@@ -126,6 +126,27 @@ describe Ruote::Asw::S3Client do
       end
     end
 
+    describe '.new' do
+
+      it 'creates the bucket if a region is specified' do
+
+        bn = new_bucket_name
+
+        Ruote::Asw::S3Client.new(aki, sak, bn, 'edo')
+
+        Ruote::Asw::S3Client.list_buckets(aki, sak).should include(bn)
+      end
+
+      it 'does not create the bucket if a region is not specified' do
+
+        bn = new_bucket_name
+
+        Ruote::Asw::S3Client.new(aki, sak, bn)
+
+        Ruote::Asw::S3Client.list_buckets(aki, sak).should_not include(bn)
+      end
+    end
+
     describe '.list_buckets' do
 
       it 'lists the buckets in the account' do

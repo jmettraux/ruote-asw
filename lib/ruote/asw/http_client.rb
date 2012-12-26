@@ -28,14 +28,18 @@ require 'openssl'
 require 'net/http/persistent'
 
 require 'ruote/asw/version'
+require 'ruote/asw/debug'
 
 
 module Ruote::Asw
 
   class HttpClient
 
+    attr_reader :name
+
     def initialize(name)
 
+      @name = name
       @http = Net::HTTP::Persistent.new(name)
     end
 
@@ -60,7 +64,18 @@ module Ruote::Asw
       req = kla.new(path, headers)
       req.body = body if body
 
-      Response.new(@http.request(uri, req))
+      log(meth, uri, headers, body)
+
+      res = Response.new(@http.request(uri, req))
+
+      log(meth, uri, headers, body, res)
+
+      res
+    end
+
+    def log(meth, uri, headers, body, res=nil)
+
+      Debug.log(self, meth, uri, headers, body, res)
     end
 
     class Response

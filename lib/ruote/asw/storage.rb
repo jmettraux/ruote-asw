@@ -142,6 +142,10 @@ module Ruote::Asw
         'name' => @swf_domain,
         'workflowExecutionRetentionPeriodInDays' => '90')
           # 90 days is the max :-(
+
+    rescue Ruote::Asw::SwfClient::Error => sce
+
+      raise sce unless sce.message.match(/DomainAlreadyExistsFault/)
     end
 
     def prepare_workflow_type
@@ -156,6 +160,10 @@ module Ruote::Asw
         'defaultTaskList' => { 'name' => @decision_task_list },
         'defaultTaskStartToCloseTimeout' => 30.to_s)
           # 30 seconds max
+
+    rescue Ruote::Asw::SwfClient::Error => sce
+
+      raise sce unless sce.message.match(/TypeAlreadyExistsFault/)
     end
 
     def prepare_activity_type
@@ -171,6 +179,10 @@ module Ruote::Asw
         'defaultTaskScheduleToCloseTimeout' => 'NONE',
         'defaultTaskScheduleToStartTimeout' => 'NONE',
         'defaultTaskStartToCloseTimeout' => 'NONE')
+
+    rescue Ruote::Asw::SwfClient::Error => sce
+
+      raise sce unless sce.message.match(/TypeAlreadyExistsFault/)
     end
   end
 end

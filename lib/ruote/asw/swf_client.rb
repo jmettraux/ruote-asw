@@ -109,6 +109,8 @@ module Ruote::Asw
 
       log(action, original_data, data, headers, res)
 
+      raise res.error if res.error
+
       res.from_json
     end
 
@@ -147,11 +149,13 @@ module Ruote::Asw
 
     class Response
 
+      attr_reader :error
+
       def initialize(http_res)
 
         @http_res = http_res
 
-        raise Ruote::Asw::SwfClient::Error.new(self) if code != 200
+        @error = code != 200 ? Ruote::Asw::SwfClient::Error.new(self) : nil
       end
 
       def method_missing(m, *args)

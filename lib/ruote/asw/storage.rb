@@ -94,7 +94,8 @@ module Ruote::Asw
 
         when 'launch', 'relaunch'
 
-          bundle_id = @store.put('wfid' => msg['wfid'], 'msgs' => [ msg ])
+          bundle_id =
+            @store.put_bundle('wfid' => msg['wfid'], 'msgs' => [ msg ])
 
           @swf_client.start_workflow_execution(
             'domain' => @swf_domain,

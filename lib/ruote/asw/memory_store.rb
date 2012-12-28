@@ -29,32 +29,37 @@ module Ruote::Asw
 
     def initialize
 
-      @hash =
-        {
-          'configurations' => { 'engine' => {} },
-          'bundles' => {}
-        }
+      @globals = { 'configurations' => { 'engine' => {} } }
+      @bundles = {}
     end
 
     def get(type, key)
 
-      @hash[type][key]
+      @globals[type][key]
     end
 
     def put(doc)
 
-      if t = doc['type']
+      @globals[doc['type']][doc['_id']] = doc
 
-        @hash[doc['type']][doc['_id']] = doc
+      nil # success
+    end
 
-        nil
+    def put_bundle(bundle)
 
-      else
+      @bundles[bundle['wfid']] = bundle
 
-        @hash['bundles'][doc['wfid']] = doc
+      bundle['wfid']
+    end
 
-        doc['wfid']
-      end
+    def get_bundle(bundle_id)
+
+      @bundles[bundle['wfid']]
+    end
+
+    def del_bundle(bundle_id)
+
+      @bundles.delete(bundle['wfid'])
     end
   end
 end

@@ -26,6 +26,17 @@
 module Ruote::Asw
 
   class MemoryStore
+
+    def initialize
+
+      @hash =
+        { 'configurations' => { 'engine' => {} } }
+    end
+
+    def get(type, key)
+
+      @hash[type][key]
+    end
   end
 end
 

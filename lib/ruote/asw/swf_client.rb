@@ -32,8 +32,11 @@ module Ruote::Asw
 
     DEFAULT_ENDPOINT = 'https://swf.us-east-1.amazonaws.com'
 
-    def initialize(aws_access_key_id, aws_secret_access_key, opts={})
+    attr_reader :owner
 
+    def initialize(owner, aws_access_key_id, aws_secret_access_key, opts={})
+
+      @owner = owner
       @aki = aws_access_key_id
       @sak = aws_secret_access_key
       @opts = opts
@@ -48,6 +51,8 @@ module Ruote::Asw
 
       @http = HttpClient.new('ruote_asw_swf')
       @http.read_timeout = opts['swf_read_timeout'] || 70
+
+      @first_request = true
     end
 
     %w[
@@ -69,6 +74,11 @@ module Ruote::Asw
 
     def request(action, data)
 
+      if @first_request
+        @first_request = false
+        @owner.prepare if @owner.respond_to?(:prepare)
+      end
+
       original_data = data.dup
       data = data.inject({}) { |h, (k, v)| h[Ruote.camelize(k.to_s)] = v; h }
       body = Rufus::Json.encode(data)
@@ -89,7 +99,13 @@ module Ruote::Asw
       headers['content-type'] = 'application/json; charset=UTF-8'
       headers['content-encoding'] = 'amz-1.0'
 
-      @http.request(:post, @uri, headers, body).from_json
+      log(action, original_data, data, headers)
+
+      res = @http.request(:post, @uri, headers, body)
+
+      log(action, original_data, data, headers, res)
+
+      res.from_json
     end
 
     # Amazon signature version 3.
@@ -118,6 +134,11 @@ module Ruote::Asw
         "SignedHeaders=#{sigh}",
         "Signature=#{sig}"
       ].join(',')
+    end
+
+    def log(action, original_data, data, headers, res=nil)
+
+      Debug.log_swf(self, action, original_data, data, headers, res)
     end
   end
 end

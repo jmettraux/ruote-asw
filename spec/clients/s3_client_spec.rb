@@ -22,7 +22,7 @@ describe Ruote::Asw::S3Client do
 
     let(:client) {
 
-      Ruote::Asw::S3Client.new(aki, sak, 'ruote-asw')
+      Ruote::Asw::S3Client.new(nil, aki, sak, 'ruote-asw')
     }
 
     describe '#put' do
@@ -132,7 +132,7 @@ describe Ruote::Asw::S3Client do
 
         bn = new_bucket_name
 
-        Ruote::Asw::S3Client.new(aki, sak, bn, 'edo')
+        Ruote::Asw::S3Client.new(nil, aki, sak, bn, 'edo')
 
         Ruote::Asw::S3Client.list_buckets(aki, sak).should include(bn)
       end
@@ -141,7 +141,7 @@ describe Ruote::Asw::S3Client do
 
         bn = new_bucket_name
 
-        Ruote::Asw::S3Client.new(aki, sak, bn)
+        Ruote::Asw::S3Client.new(nil, aki, sak, bn)
 
         Ruote::Asw::S3Client.list_buckets(aki, sak).should_not include(bn)
       end
@@ -150,7 +150,7 @@ describe Ruote::Asw::S3Client do
 
         Ruote::Asw::S3Client.list_buckets(aki, sak).should include('ruote-asw')
 
-        Ruote::Asw::S3Client.new(aki, sak, 'ruote-asw', 'edo')
+        Ruote::Asw::S3Client.new(nil, aki, sak, 'ruote-asw', 'edo')
 
         Ruote::Asw::S3Client.list_buckets(aki, sak).should include('ruote-asw')
       end

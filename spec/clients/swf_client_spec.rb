@@ -13,7 +13,7 @@ describe Ruote::Asw::SwfClient do
   let(:client) {
 
     Ruote::Asw::SwfClient.new(
-      ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'])
+      nil, ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'])
   }
 
   describe '#list_domains' do

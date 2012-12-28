@@ -31,8 +31,17 @@ module Ruote::Asw
 
   class S3Client
 
-    def initialize(access_key_id, secret_access_key, bucket, region=nil)
+    attr_reader :owner
 
+    def initialize(
+      owner,
+      access_key_id,
+      secret_access_key,
+      bucket,
+      region=nil
+    )
+
+      @owner = owner
       @aki = access_key_id
       @sak = secret_access_key
       @bucket = bucket
@@ -133,7 +142,7 @@ module Ruote::Asw
       doc << '</CreateBucketConfiguration>'
       doc = doc.join("\n")
 
-      client = self.new(access_key_id, secret_access_key, nil)
+      client = self.new(nil, access_key_id, secret_access_key, nil)
 
       begin
         client.send(:request, :put, bucket, doc)
@@ -145,13 +154,13 @@ module Ruote::Asw
 
     def self.delete_bucket(access_key_id, secret_access_key, bucket)
 
-      client = self.new(access_key_id, secret_access_key, bucket)
+      client = self.new(nil, access_key_id, secret_access_key, bucket)
       client.send(:request, :delete, '')
     end
 
     def self.list_buckets(access_key_id, secret_access_key)
 
-      client = self.new(access_key_id, secret_access_key, nil)
+      client = self.new(nil, access_key_id, secret_access_key, nil)
       r = client.send(:request, :get, '')
 
       r.scan(/<Name>([^<]+)<\/Name>/).collect(&:first)

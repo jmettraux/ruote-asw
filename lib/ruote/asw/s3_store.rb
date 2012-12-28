@@ -22,6 +22,8 @@
 # Made in Japan.
 #++
 
+require 'ruote/asw/s3_client'
+
 
 module Ruote::Asw
 

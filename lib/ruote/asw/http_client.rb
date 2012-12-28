@@ -76,7 +76,7 @@ module Ruote::Asw
 
     def log(meth, uri, headers, body, res=nil)
 
-      Debug.log(self, meth, uri, headers, body, res)
+      Debug.log_http(self, meth, uri, headers, body, res)
     end
 
     class Response

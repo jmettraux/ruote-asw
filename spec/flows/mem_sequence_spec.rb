@@ -30,6 +30,10 @@ describe 'ruote-asw with a MemoryStore' do
           noop # a
           noop # b
         end
+
+      wfid = @dboard.launch(pdef)
+
+      p wfid
     end
   end
 end

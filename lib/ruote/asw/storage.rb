@@ -37,8 +37,10 @@ module Ruote::Asw
       bucket_or_store
     )
 
-      @swf_client = SwfClient.new(aws_access_key_id, aws_secret_access_key)
-      @swf_domain = domain
+      @swf_client =
+        SwfClient.new(self, aws_access_key_id, aws_secret_access_key)
+      @swf_domain =
+        domain
 
       @store =
         if bucket_or_store.is_a?(String)
@@ -50,6 +52,41 @@ module Ruote::Asw
         end
 
       # TODO: try register domain
+    end
+
+    #--
+    # the methods a ruote storage must provide
+    #++
+
+    def get_msgs
+
+      []
+    end
+
+    def get_schedules(delta, now)
+
+      []
+    end
+
+    def put_msg(action, options)
+
+      p action, options
+    end
+
+    def get(type, key)
+
+      return @store.get(type, key) if type == 'configurations'
+
+      p [ type, key ]
+    end
+
+    #--
+    # other methods
+    #++
+
+    def prepare
+
+      puts "~~~~~~~~~~~~~~~~~~~~~~~ prepare!"
     end
   end
 end

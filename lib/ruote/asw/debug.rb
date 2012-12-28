@@ -33,22 +33,32 @@ module Ruote::Asw
 
       return unless @@dlevel['ht'] > 0
 
+      id = headers.object_id.to_s(16)[0, 4]
+
       t = now
 
-      s = "        #{t} ht #{meth.upcase} #{uri.to_s}"
+      s = "        #{id} ht #{t} #{meth.upcase} #{uri.to_s}"
       s += " #{res.code} #{res.duration}s" if res
       puts(s)
+
+      p res.body if res && res.code != 200
     end
 
     def self.log_swf(client, action, original_data, data, headers, res)
 
       return unless @@dlevel['sw'] > 0
 
+      id = headers.object_id.to_s(16)[0, 4]
+
       t = now
 
-      s = "        #{t} sw #{action}"
+      s = "        #{id} sw #{t} #{action}"
       s += " #{res.code} #{res.duration}s" if res
       puts(s)
+
+      return unless @@dlevel['sw'] > 1
+
+      #pp original_data
     end
 
     def self.parse_dlevel

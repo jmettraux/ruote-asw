@@ -58,6 +58,10 @@ module Ruote::Asw
     %w[
 
       list_domains
+      register_domain
+      register_activity_type
+      register_workflow_type
+      start_workflow_execution
 
     ].each do |action|
 
@@ -101,7 +105,7 @@ module Ruote::Asw
 
       log(action, original_data, data, headers)
 
-      res = @http.request(:post, @uri, headers, body)
+      res = Response.new(@http.request(:post, @uri, headers, body))
 
       log(action, original_data, data, headers, res)
 
@@ -139,6 +143,33 @@ module Ruote::Asw
     def log(action, original_data, data, headers, res=nil)
 
       Debug.log_swf(self, action, original_data, data, headers, res)
+    end
+
+    class Response
+
+      def initialize(http_res)
+
+        @http_res = http_res
+
+        raise Ruote::Asw::SwfClient::Error.new(self) if code != 200
+      end
+
+      def method_missing(m, *args)
+
+        return @http_res.send(m, *args) if @http_res.respond_to?(m)
+
+        super
+      end
+    end
+
+    class Error < StandardError
+
+      def initialize(res)
+
+        @res = res
+
+        super(res.from_json['__type'].split('#').last)
+      end
     end
   end
 end

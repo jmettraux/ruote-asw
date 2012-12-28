@@ -41,11 +41,20 @@ module Ruote::Asw
       @hash[type][key]
     end
 
-    def put(bundle)
+    def put(doc)
 
-      @hash['bundles'][bundle['wfid']] = bundle
+      if t = doc['type']
 
-      bundle['wfid']
+        @hash[doc['type']][doc['_id']] = doc
+
+        nil
+
+      else
+
+        @hash['bundles'][doc['wfid']] = doc
+
+        doc['wfid']
+      end
     end
   end
 end

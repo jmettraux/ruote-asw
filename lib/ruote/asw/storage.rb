@@ -34,7 +34,8 @@ module Ruote::Asw
       aws_access_key_id,
       aws_secret_access_key,
       domain,
-      bucket_or_store
+      bucket_or_store,
+      conf={}
     )
 
       @swf_client =
@@ -51,7 +52,18 @@ module Ruote::Asw
           bucket_or_store
         end
 
-      # TODO: try register domain
+      replace_engine_configuration({
+        'restless_worker' => true
+      }.merge(conf))
+
+      @decision_task_timeout = conf.delete('decision_task_timeout') || 10
+
+      @workflow_name = 'ruote_asw_workflow'
+      @activity_name = 'ruote_asw_activity'
+      @version = '0.1'
+
+      @decision_task_list = 'ruote_asw'
+      @activity_task_list = 'ruote_asw'
     end
 
     #--
@@ -79,12 +91,31 @@ module Ruote::Asw
         # SWF workflow execution
 
       case action
+
         when 'launch', 'relaunch'
+
           bundle_id = @store.put('wfid' => msg['wfid'], 'msgs' => [ msg ])
-          p :start_workflow_execution__!
+
+          @swf_client.start_workflow_execution(
+            'domain' => @swf_domain,
+            'workflowId' => msg['wfid'],
+            'workflowType' => {
+              'name' => @workflow_name, 'version' => @version },
+            'taskList' => { 'name' => @decision_task_list },
+            'taskStartToCloseTimeout' => @decision_task_timeout.to_s,
+            'input' => bundle_id)
+
         else
+
           p [ action, options ]
       end
+    end
+
+    def put(doc)
+
+      return @store.put(doc) if doc['type'] == 'configurations'
+
+      p doc
     end
 
     def get(type, key)
@@ -95,12 +126,51 @@ module Ruote::Asw
     end
 
     #--
-    # other methods
+    # SWF preparation
     #++
 
     def prepare
 
-      puts "~~~~~~~~~~~~~~~~~~~~~~~ prepare!"
+      prepare_domain
+      prepare_workflow_type
+      prepare_activity_type
+    end
+
+    def prepare_domain
+
+      @swf_client.register_domain(
+        'name' => @swf_domain,
+        'workflowExecutionRetentionPeriodInDays' => '90')
+          # 90 days is the max :-(
+    end
+
+    def prepare_workflow_type
+
+      @swf_client.register_workflow_type(
+        'domain' => @swf_domain,
+        'name' => @workflow_name,
+        'version' => @version,
+        'defaultChildPolicy' => 'TERMINATE',
+        'defaultExecutionStartToCloseTimeout' => (365 * 24 * 3600).to_s,
+          # 1 year max (the default)
+        'defaultTaskList' => { 'name' => @decision_task_list },
+        'defaultTaskStartToCloseTimeout' => 30.to_s)
+          # 30 seconds max
+    end
+
+    def prepare_activity_type
+
+      # TODO: consider heartbeat...
+
+      @swf_client.register_activity_type(
+        'domain' => @swf_domain,
+        'name' => @activity_name,
+        'version' => @version,
+        'defaultTaskList' => { 'name' => @activity_task_list },
+        'defaultTaskHeartbeatTimeout' => 'NONE',
+        'defaultTaskScheduleToCloseTimeout' => 'NONE',
+        'defaultTaskScheduleToStartTimeout' => 'NONE',
+        'defaultTaskStartToCloseTimeout' => 'NONE')
     end
   end
 end

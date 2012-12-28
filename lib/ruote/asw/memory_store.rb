@@ -30,12 +30,22 @@ module Ruote::Asw
     def initialize
 
       @hash =
-        { 'configurations' => { 'engine' => {} } }
+        {
+          'configurations' => { 'engine' => {} },
+          'bundles' => {}
+        }
     end
 
     def get(type, key)
 
       @hash[type][key]
+    end
+
+    def put(bundle)
+
+      @hash['bundles'][bundle['wfid']] = bundle
+
+      bundle['wfid']
     end
   end
 end

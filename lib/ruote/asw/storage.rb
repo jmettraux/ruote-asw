@@ -70,7 +70,21 @@ module Ruote::Asw
 
     def put_msg(action, options)
 
-      p action, options
+      msg = options.merge('action' => action)
+      msg['put_at'] = Ruote.now_to_utc_s
+
+      action = 'apply' if action == 'launch' && ( ! options.has_key?('stash'))
+        #
+        # sub-processes (sub-launches) are running inside of the same
+        # SWF workflow execution
+
+      case action
+        when 'launch', 'relaunch'
+          bundle_id = @store.put('wfid' => msg['wfid'], 'msgs' => [ msg ])
+          p :start_workflow_execution__!
+        else
+          p [ action, options ]
+      end
     end
 
     def get(type, key)

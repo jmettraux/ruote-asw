@@ -25,22 +25,49 @@
 
 namespace :s3 do
 
-  desc %{
-    TODO
-  }
-  task :create_bucket, [ :name ] do
+  task :req do
+
+    require 'ruote-asw'
   end
 
   desc %{
-    TODO
+    list the buckets the AWS account owns
   }
-  task :delete_bucket, [ :name ] do
+  task :buckets => :req do
+
+    pp Ruote::Asw::S3Client.list_buckets(
+      ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'])
   end
 
   desc %{
-    TODO
+    creates a bucket given a name and an AWS region
   }
-  task :purge_bucket, [ :name ] do
+  task :create_bucket, [ :name, :region ] => :req do |t, args|
+
+    Ruote::Asw::S3Client.create_bucket(
+      ENV['AWS_ACCESS_KEY_ID'],
+      ENV['AWS_SECRET_ACCESS_KEY'],
+      args[:name],
+      args[:region])
+  end
+
+  desc %{
+    deletes a bucket
+  }
+  task :delete_bucket, [ :name ] => :req do |t, args|
+
+    Ruote::Asw::S3Client.delete_bucket(
+      ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], args[:name])
+  end
+
+  desc %{
+    removes all the items in the target bucket
+  }
+  task :purge_bucket, [ :name ] => :req do |t, args|
+
+    Ruote::Asw::S3Client.new(
+      nil, ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], args[:name]
+    ).purge
   end
 end
 

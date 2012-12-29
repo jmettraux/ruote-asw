@@ -104,6 +104,15 @@ describe Ruote::Asw::S3Client do
         r.should == nil
         client.list.should == []
       end
+
+      it 'raises if the bucket does not exist' do
+
+        lambda {
+          Ruote::Asw::S3Client.new(nil, aki, sak, 'nada-nada-nada').purge
+        }.should raise_error(
+          ArgumentError, "bucket 'nada-nada-nada' doesn't seem to exist"
+        )
+      end
     end
   end
 

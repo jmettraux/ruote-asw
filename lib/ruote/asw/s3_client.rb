@@ -93,6 +93,10 @@ module Ruote::Asw
 
       r = request(:get, path)
 
+      raise ArgumentError.new(
+        "bucket '#{@bucket}' doesn't seem to exist"
+      ) unless r
+
       r.scan(/<Key>([^<]+)<\/Key>/).collect(&:first)
     end
 

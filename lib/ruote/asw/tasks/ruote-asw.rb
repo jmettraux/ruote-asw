@@ -26,10 +26,27 @@
 namespace :ruote do
 namespace :asw do
 
+  task :req do
+
+    require 'rufus-json/automatic'
+    require 'ruote-asw'
+  end
+
   desc %{
     prepares the domain / wf type / activity type for ruote-asw operations
   }
-  task :prepare, [ :domain_name ] do
+  task :prepare, [ :domain_name ] => :req do |t, args|
+
+    raise ArgumentError.new(
+      'missing :domain_name argument'
+    ) unless args[:domain_name]
+
+    storage = Ruote::Asw::Storage.new(
+      ENV['AWS_ACCESS_KEY_ID'],
+      ENV['AWS_SECRET_ACCESS_KEY'],
+      args[:domain_name],
+      :memory,
+      :prepare_immediately => true)
   end
 end
 end

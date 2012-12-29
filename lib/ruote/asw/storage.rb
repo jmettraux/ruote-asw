@@ -38,19 +38,32 @@ module Ruote::Asw
       conf={}
     )
 
+      if bucket_or_store.is_a?(Hash)
+        conf = bucket_or_store
+        bucket_or_store = nil
+      end
+
       @swf_client =
         SwfClient.new(self, aws_access_key_id, aws_secret_access_key)
       @swf_domain =
         domain
 
       @store =
-        if bucket_or_store.is_a?(String)
-          # TODO
-        elsif bucket_or_store == :memory
-          MemoryStore.new
-        else
-          bucket_or_store
+        case bucket_or_store
+          when String
+            nil # TODO
+          when :memory
+            MemoryStore.new
+          when nil
+            nil # TODO
+          else
+            bucket_or_store
         end
+
+      # TODO: rdoc me
+      @preparation = nil
+      @preparation = false if conf.delete(:no_preparation) == true
+      @preparation = true if conf.delete(:prepare_immediately) == true
 
       replace_engine_configuration({
         'restless_worker' => true
@@ -64,6 +77,8 @@ module Ruote::Asw
 
       @decision_task_list = 'ruote_asw'
       @activity_task_list = 'ruote_asw'
+
+      prepare if @preparation == true
     end
 
     #--
@@ -131,6 +146,8 @@ module Ruote::Asw
     #++
 
     def prepare
+
+      return if @preparation == false
 
       prepare_domain
       prepare_workflow_type

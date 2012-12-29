@@ -18,14 +18,14 @@ def new_storage(opts)
     # use in-memory store
 
     Ruote::Asw::Storage.new(
-      aki, sak, 'ruote_asw_test', Ruote::Asw::MemoryStore.new)
+      aki, sak, 'ruote_asw_test', Ruote::Asw::MemoryStore.new, opts)
 
   else
     #
     # will use a S3Store with the 'ruote_asw_test' bucket
 
     Ruote::Asw::Storage.new(
-      aki, sak, 'ruote_asw_test')
+      aki, sak, 'ruote_asw_test', opts)
   end
 end
 

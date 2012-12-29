@@ -41,7 +41,9 @@ module Ruote::Asw
       s += " #{res.code} #{res.duration}s" if res
       puts(colour(34, s))
 
-      #p res.body if res && res.code != 200
+      return unless @@dlevel['ht'] > 1
+
+      puts(colour(34, res.body)) if res && res.code != 200
     end
 
     def self.log_swf(client, action, original_data, data, headers, res)

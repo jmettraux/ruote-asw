@@ -18,7 +18,7 @@ describe 'ruote-asw with a MemoryStore' do
       Ruote::Dashboard.new(
         Ruote::Asw::DecisionWorker.new(
         Ruote::Asw::ActivityWorker.new(
-          new_storage(:memory_store => true))))
+          new_storage(:memory_store => true, :no_preparation => true))))
   end
 
   describe 'sequence' do

@@ -58,6 +58,8 @@ module Ruote::Asw
     %w[
 
       list_domains
+      list_activity_types
+      list_workflow_types
       register_domain
       register_activity_type
       register_workflow_type

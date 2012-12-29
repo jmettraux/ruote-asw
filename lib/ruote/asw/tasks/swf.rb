@@ -27,6 +27,7 @@ namespace :swf do
 
   task :setup_client do
 
+    require 'rufus-json/automatic'
     require 'ruote-asw'
 
     @swf_client =
@@ -44,10 +45,43 @@ namespace :swf do
     p :nada
   end
 
-#  desc %{
-#    TODO
-#  }
-#  task :register_workflow_type do
-#  end
+  desc %{
+    list the SWF domains registered in the account
+  }
+  task :domains => :setup_client do
+
+    pp @swf_client.list_domains(:registration_status => 'REGISTERED')
+  end
+
+  desc %{
+    list the domains in the SWF account and the workflow/activity types in them
+  }
+  task :registered => :setup_client do
+
+    @swf_client.list_domains(
+      :registration_status => 'REGISTERED'
+    )['domainInfos'].each do |d|
+
+      puts "  #{d['name']}:"
+
+      puts "    workflow type:"
+
+      @swf_client.list_workflow_types(
+        :domain => d['name'], :registration_status => 'REGISTERED'
+      )['typeInfos'].each do |ti|
+        wt = ti['workflowType']
+        puts "      #{wt['name']} #{wt['version']}"
+      end
+
+      puts "    activity type:"
+
+      @swf_client.list_activity_types(
+        :domain => d['name'], :registration_status => 'REGISTERED'
+      )['typeInfos'].each do |ti|
+        at = ti['activityType']
+        puts "      #{at['name']} #{at['version']}"
+      end
+    end
+  end
 end
 

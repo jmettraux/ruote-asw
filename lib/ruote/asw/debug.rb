@@ -39,7 +39,7 @@ module Ruote::Asw
 
       s = "        #{id} ht #{t} #{meth.upcase} #{uri.to_s}"
       s += " #{res.code} #{res.duration}s" if res
-      puts(s)
+      puts(colour(34, s))
 
       #p res.body if res && res.code != 200
     end
@@ -54,7 +54,7 @@ module Ruote::Asw
 
       s = "        #{id} sw #{t} #{action}"
       s += " #{res.code} #{res.duration}s" if res
-      puts(s)
+      puts(colour(34, s))
 
       return unless @@dlevel['sw'] > 1
 
@@ -87,45 +87,45 @@ module Ruote::Asw
       Time.now.strftime('%R:%S.%3N')
     end
 
-#    #--
-#    # <ESC>[{attr1};...;{attrn}m
-#    #
-#    # 0 Reset all attributes
-#    # 1 Bright
-#    # 2 Dim
-#    # 4 Underscore
-#    # 5 Blink
-#    # 7 Reverse
-#    # 8 Hidden
-#    #
-#    # Foreground Colours
-#    # 30 Black
-#    # 31 Red
-#    # 32 Green
-#    # 33 Yellow
-#    # 34 Blue
-#    # 35 Magenta
-#    # 36 Cyan
-#    # 37 White
-#    #
-#    # Background Colours
-#    # 40 Black
-#    # 41 Red
-#    # 42 Green
-#    # 43 Yellow
-#    # 44 Blue
-#    # 45 Magenta
-#    # 46 Cyan
-#    # 47 White
-#    #++
-#
-#    def color(mod, s, clear=false)
-#
-#      return s if Ruote::WIN
-#      return s unless STDOUT.tty?
-#
-#      "[#{mod}m#{s}[0m#{clear ? '' : "[#{@color}m"}"
-#    end
+    def self.colour(mod, s, clear=false)
+
+      return s if Ruote::WIN
+      return s unless $stdout.tty?
+
+      "[#{mod}m#{s}[0m"
+    end
+
+    #--
+    # <ESC>[{attr1};...;{attrn}m
+    #
+    # 0 Reset all attributes
+    # 1 Bright
+    # 2 Dim
+    # 4 Underscore
+    # 5 Blink
+    # 7 Reverse
+    # 8 Hidden
+    #
+    # Foreground Colours
+    # 30 Black
+    # 31 Red
+    # 32 Green
+    # 33 Yellow
+    # 34 Blue
+    # 35 Magenta
+    # 36 Cyan
+    # 37 White
+    #
+    # Background Colours
+    # 40 Black
+    # 41 Red
+    # 42 Green
+    # 43 Yellow
+    # 44 Blue
+    # 45 Magenta
+    # 46 Cyan
+    # 47 White
+    #++
   end
 end
 

@@ -95,12 +95,21 @@ namespace :swf do
       'missing :domain argument or SWF_DOMAIN env var'
     ) unless domain
 
-    pp @swf_client.list_open_workflow_executions(
-      :domain => domain,
-      :startTimeFilter => {
-        'oldestDate' => Time.now.to_i - 2 * 365 * 24 * 3600,
-        'latestDate' => Time.now.to_i },
-      :reverseOrder => true)
+    pp @swf_client.open_executions(domain)
+  end
+
+  desc %{
+    /!\\ terminate all the open wf execution in the given domain
+  }
+  task :purge, [ :domain ] => :setup_client do |t, args|
+
+    domain = args[:domain] || ENV['SWF_DOMAIN']
+
+    raise ArgumentError.new(
+      'missing :domain argument or SWF_DOMAIN env var'
+    ) unless domain
+
+    pp @swf_client.purge!(domain)
   end
 end
 

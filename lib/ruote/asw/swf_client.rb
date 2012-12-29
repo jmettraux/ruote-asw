@@ -65,6 +65,7 @@ module Ruote::Asw
       register_activity_type
       register_workflow_type
       start_workflow_execution
+      terminate_workflow_execution
 
     ].each do |action|
 
@@ -75,6 +76,29 @@ module Ruote::Asw
           request(#{act.inspect}, data)
         end
       }, __FILE__, __LINE__)
+    end
+
+    def open_executions(domain)
+
+      list_open_workflow_executions(
+        :domain => domain,
+        :startTimeFilter => {
+          'oldestDate' => Time.now.to_i - 2 * 365 * 24 * 3600,
+          'latestDate' => Time.now.to_i },
+        :reverseOrder => true
+      )['executionInfos']
+    end
+
+    def purge!(domain)
+
+      open_executions(domain).collect do |ei|
+
+        terminate_workflow_execution(
+          'domain' => domain,
+          'workflowId' => ei['execution']['workflowId'])
+
+        ei['execution']
+      end
     end
 
     protected

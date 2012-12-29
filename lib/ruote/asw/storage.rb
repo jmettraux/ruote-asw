@@ -87,6 +87,24 @@ module Ruote::Asw
 
     def get_msgs
 
+      meth, task_list =
+        if activity_worker?
+          [ :poll_for_decision_task, @decision_task_list ]
+        else
+          [ :poll_for_activity_task, @activity_task_list ]
+        end
+
+      r = begin
+        @swf_client.send(
+          meth,
+          'domain' => @swf_domain,
+          'taskList' => { 'name' => task_list },
+          'identity' => worker.identity)
+      rescue Timeout::Error
+        nil
+      end
+
+      p r
       []
     end
 
@@ -139,6 +157,12 @@ module Ruote::Asw
       return @store.get(type, key) if type == 'configurations'
 
       p [ type, key ]
+    end
+
+    def purge!
+
+      @swf_client.purge!(@swf_domain)
+      @store.purge!
     end
 
     #--
@@ -201,6 +225,18 @@ module Ruote::Asw
     rescue Ruote::Asw::SwfClient::Error => sce
 
       raise sce unless sce.message.match(/TypeAlreadyExistsFault/)
+    end
+
+    protected
+
+    def decision_worker?
+
+      ! activity_worker?
+    end
+
+    def activity_worker?
+
+      !! worker.name.index('activity')
     end
   end
 end

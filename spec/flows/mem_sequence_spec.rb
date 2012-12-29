@@ -21,6 +21,12 @@ describe 'ruote-asw with a MemoryStore' do
           new_storage(:memory_store => true, :no_preparation => true))))
   end
 
+  after(:each) do
+
+    @dboard.shutdown
+    @dboard.storage.purge!
+  end
+
   describe 'sequence' do
 
     it 'flows from a to b' do
@@ -34,6 +40,7 @@ describe 'ruote-asw with a MemoryStore' do
       wfid = @dboard.launch(pdef)
 
       p wfid
+      sleep 5
     end
   end
 end

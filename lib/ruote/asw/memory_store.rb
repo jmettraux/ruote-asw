@@ -61,6 +61,11 @@ module Ruote::Asw
 
       @bundles.delete(bundle['wfid'])
     end
+
+    def purge!
+
+      @bundles.clear
+    end
   end
 end
 

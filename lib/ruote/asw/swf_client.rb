@@ -61,6 +61,8 @@ module Ruote::Asw
       list_activity_types
       list_workflow_types
       list_open_workflow_executions
+      poll_for_decision_task
+      poll_for_activity_task
       register_domain
       register_activity_type
       register_workflow_type

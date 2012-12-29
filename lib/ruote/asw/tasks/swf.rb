@@ -83,5 +83,24 @@ namespace :swf do
       end
     end
   end
+
+  desc %{
+    list the open workflow executions in a given domain
+  }
+  task :executions, [ :domain ] => :setup_client do |t, args|
+
+    domain = args[:domain] || ENV['SWF_DOMAIN']
+
+    raise ArgumentError.new(
+      'missing :domain argument or SWF_DOMAIN env var'
+    ) unless domain
+
+    pp @swf_client.list_open_workflow_executions(
+      :domain => domain,
+      :startTimeFilter => {
+        'oldestDate' => Time.now.to_i - 2 * 365 * 24 * 3600,
+        'latestDate' => Time.now.to_i },
+      :reverseOrder => true)
+  end
 end
 

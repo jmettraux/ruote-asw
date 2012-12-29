@@ -37,7 +37,7 @@ module Ruote::Asw
 
       t = now
 
-      s = "        #{id} ht #{t} #{meth.upcase} #{uri.to_s}"
+      s = "        #{id}  ht #{t} #{meth.upcase} #{uri.to_s}"
       s += " #{res.code} #{res.duration}s" if res
       puts(colour(34, s))
 
@@ -54,13 +54,16 @@ module Ruote::Asw
 
       t = now
 
-      s = "        #{id} sw #{t} #{action}"
+      s = "        #{id} sw  #{t} #{action}"
       s += " #{res.code} #{res.duration}s" if res
       puts(colour(34, s))
 
       return unless @@dlevel['sw'] > 1
 
-      #pp original_data
+      unless res
+        s = "        #{id} sw  #{t} #{Ruote.insp(data)}"
+        puts(colour(34, s))
+      end
     end
 
     def self.parse_dlevel

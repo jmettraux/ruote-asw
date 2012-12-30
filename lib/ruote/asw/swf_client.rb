@@ -50,7 +50,9 @@ module Ruote::Asw
       ) unless (@aki && @sak)
 
       @http = HttpClient.new('ruote_asw_swf')
-      @http.read_timeout = opts['swf_read_timeout'] || 70
+      to = opts['swf_read_timeout'] || 70
+      @http.read_timeout = to
+      @http.open_timeout = to
 
       @first_request = true
     end

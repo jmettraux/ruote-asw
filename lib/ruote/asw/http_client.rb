@@ -48,6 +48,11 @@ module Ruote::Asw
       @http.read_timeout = seconds
     end
 
+    def open_timeout=(seconds)
+
+      @http.open_timeout = seconds
+    end
+
     def request(meth, uri, headers, body)
 
       t = nil

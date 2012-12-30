@@ -106,8 +106,8 @@ module Ruote::Asw
           'domain' => @swf_domain,
           'taskList' => { 'name' => task_list },
           'identity' => worker.identity)
-      rescue Timeout::Error
-        nil
+      #rescue Timeout::Error
+      #  nil
       end
 
       set_task(r)

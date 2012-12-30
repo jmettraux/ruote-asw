@@ -40,7 +40,8 @@ describe 'ruote-asw with a MemoryStore' do
       wfid = @dboard.launch(pdef)
 
       p wfid
-      sleep 5
+      sleep(7)
+      sleep(7)
     end
   end
 end

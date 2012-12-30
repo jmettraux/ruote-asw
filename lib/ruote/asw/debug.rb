@@ -29,9 +29,12 @@ module Ruote::Asw
 
   module Debug
 
-    def self.log_http(client, meth, uri, headers, body, res)
+    def self.log_http(client, meth, uri, headers, body, res_or_err)
 
       return unless @@dlevel['ht'] > 0
+
+      res, err = [ res_or_err, nil ]
+      res, err = err, res if res.is_a?(Exception)
 
       id = headers.object_id.to_s(16)[0, 4]
 
@@ -43,7 +46,15 @@ module Ruote::Asw
 
       return unless @@dlevel['ht'] > 1
 
-      puts(colour(34, res.body)) if res && res.code != 200
+      puts(
+        colour(34, res.body)
+      ) if res && res.code != 200
+
+      puts(
+        colour(
+          34,
+          "        #{id}  ht #{t} err #{err.class}: #{err.message} #{err.duration}s")
+      ) if err
     end
 
     def self.log_swf(client, action, original_data, data, headers, res)

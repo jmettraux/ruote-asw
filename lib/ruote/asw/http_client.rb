@@ -50,6 +50,8 @@ module Ruote::Asw
 
     def request(meth, uri, headers, body)
 
+      t = nil
+
       kla =
         case meth
           when :put then Net::HTTP::Put
@@ -72,6 +74,17 @@ module Ruote::Asw
       log(meth, uri, headers, body, res)
 
       res
+
+    rescue Exception => e
+      #
+      # catch anything, log, then re-raise
+
+      class << e; attr_accessor :duration; end
+      e.duration = t ? Time.now - t : 0
+
+      log(meth, uri, headers, body, e)
+
+      raise e
     end
 
     def log(meth, uri, headers, body, res=nil)

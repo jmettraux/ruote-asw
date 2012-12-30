@@ -23,6 +23,7 @@
 #++
 
 require 'ruote/asw/swf_client'
+require 'ruote/asw/swf_task'
 
 
 module Ruote::Asw
@@ -85,6 +86,11 @@ module Ruote::Asw
     # the methods a ruote storage must provide
     #++
 
+    def reserve(doc)
+
+      true
+    end
+
     def get_msgs
 
       meth, task_list =
@@ -104,8 +110,9 @@ module Ruote::Asw
         nil
       end
 
-      p r
-      []
+      set_task(r)
+
+      task ? task.msgs : []
     end
 
     def get_schedules(delta, now)
@@ -127,8 +134,7 @@ module Ruote::Asw
 
         when 'launch', 'relaunch'
 
-          bundle_id =
-            @store.put_bundle('wfid' => msg['wfid'], 'msgs' => [ msg ])
+          @store.put_msg(msg)
 
           @swf_client.start_workflow_execution(
             'domain' => @swf_domain,
@@ -136,27 +142,32 @@ module Ruote::Asw
             'workflowType' => {
               'name' => @workflow_name, 'version' => @version },
             'taskList' => { 'name' => @decision_task_list },
-            'taskStartToCloseTimeout' => @decision_task_timeout.to_s,
-            'input' => bundle_id)
+            'taskStartToCloseTimeout' => @decision_task_timeout.to_s)
+            #'input' => bundle_id)
 
         else
+
+          # TODO
+          # BREAK IT ? IS THE ONLY SPECIAL CASE "LAUNCH" (A NEW WF EXECUTION) ?
 
           p [ action, options ]
       end
     end
 
-    def put(doc)
+    STORE_TYPES = %w[ configurations variables ]
 
-      return @store.put(doc) if doc['type'] == 'configurations'
+    def put(doc, opts={})
 
-      p doc
+      return @store.put(doc, opts) if STORE_TYPES.include?(doc['type'])
+
+      task.put(doc)
     end
 
     def get(type, key)
 
-      return @store.get(type, key) if type == 'configurations'
+      return @store.get(type, key) if STORE_TYPES.include?(type)
 
-      p [ type, key ]
+      p [ :get, type, key ]
     end
 
     def purge!
@@ -237,6 +248,16 @@ module Ruote::Asw
     def activity_worker?
 
       !! worker.name.index('activity')
+    end
+
+    def set_task(res)
+
+      Thread.current['ruote_asw_task'] = res ? SwfTask.new(@store, res) : nil
+    end
+
+    def task
+
+      Thread.current['ruote_asw_task']
     end
   end
 end

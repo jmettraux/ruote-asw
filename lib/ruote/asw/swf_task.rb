@@ -25,46 +25,22 @@
 
 module Ruote::Asw
 
-  class MemoryStore
+  class SwfTask
 
-    def initialize
+    attr_reader :wfid, :msgs
 
-      @globals = {
-        'configurations' => { 'engine' => {} },
-        'variables' => {}
-      }
+    def initialize(store, res)
 
-      @msgs = []
+      @wfid = res['workflowExecution']['workflowId']
+      @msgs = store.get_msgs(@wfid)
+      @docs = {}
     end
 
-    def get(type, key)
+    def put(doc)
 
-      @globals[type][key]
-    end
-
-    def put(doc, opts)
-
-      @globals[doc['type']][doc['_id']] = doc
+      (@docs[doc['type']] ||= {})[doc['_id']] = doc
 
       nil # success
-    end
-
-    def put_msg(msg)
-
-      @msgs << msg
-    end
-
-    def get_msgs(wfid)
-
-      @msgs.select { |m| m['wfid'] == wfid }
-    end
-
-    def del_msgs(msg_ids)
-
-      @msgs.delete_if { |m| msg_ids.include?(m['_id']) }
-    end
-
-    def purge!
     end
   end
 end

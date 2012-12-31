@@ -5,7 +5,7 @@ require 'rake'
 require 'rake/clean'
 require 'rdoc/task'
 
-require 'ruote/asw/tasks'
+require 'ruote/asw/rake_tasks'
 
 
 #

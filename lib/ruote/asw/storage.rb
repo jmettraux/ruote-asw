@@ -88,6 +88,8 @@ module Ruote::Asw
 
     def reserve(doc)
 
+      @store.del_msg(doc) if doc['type'] == 'msgs'
+
       true
     end
 
@@ -97,9 +99,9 @@ module Ruote::Asw
 
       meth, task_list =
         if activity_worker?
-          [ :poll_for_decision_task, @decision_task_list ]
-        else
           [ :poll_for_activity_task, @activity_task_list ]
+        else
+          [ :poll_for_decision_task, @decision_task_list ]
         end
 
       r = begin
@@ -164,7 +166,14 @@ module Ruote::Asw
 
       return @store.get(type, key) if STORE_TYPES.include?(type)
 
-      p [ :get, type, key ]
+      task.get(type, key)
+    end
+
+    def delete(doc)
+
+      return @store.delete(doc) if STORE_TYPES.include?(doc['type'])
+
+      task.delete(doc)
     end
 
     def purge!

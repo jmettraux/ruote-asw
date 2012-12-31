@@ -29,6 +29,8 @@ module Ruote::Asw
 
   module Debug
 
+    @@next_drip = '|....'
+
     def self.log_http(client, meth, uri, headers, body, res_or_err)
 
       return unless @@dlevel['ht'] > 0
@@ -36,44 +38,61 @@ module Ruote::Asw
       res, err = [ res_or_err, nil ]
       res, err = err, res if res.is_a?(Exception)
 
-      id = headers.object_id.to_s(16)[0, 4]
+      id = request_id(headers)
 
       t = now
+      prefix = "        #{worker} #{id}  ht #{t}"
 
-      s = "        #{id}  ht #{t} #{meth.upcase} #{uri.to_s}"
+      s = "#{prefix} #{meth.upcase} #{uri.to_s}"
       s += " #{res.code} #{res.duration}s" if res
-      puts(colour(34, s))
+      echo(s)
 
       return unless @@dlevel['ht'] > 1
 
-      puts(
-        colour(34, res.body)
-      ) if res && res.code != 200
+      echo(res.body) if res && res.code != 200
 
-      puts(
-        colour(
-          34,
-          "        #{id}  ht #{t} err #{err.class}: #{err.message} #{err.duration}s")
-      ) if err
+      echo("#{prefix} err #{err.class}: #{err.message} #{err.duration}s") if err
+    end
+
+    def self.request_id(headers)
+
+      if headers.respond_to?(:_drip)
+        d = headers._drip
+        @@next_drip = d[-1] + d[0..-2]
+      else
+        class << headers; attr_accessor :_drip; end
+        headers._drip = @@next_drip
+      end
+
+      headers.object_id.to_s(16)[0, 4] + headers._drip
     end
 
     def self.log_swf(client, action, original_data, data, headers, res)
 
       return unless @@dlevel['sw'] > 0
 
-      id = headers.object_id.to_s(16)[0, 4]
+      id = request_id(headers)
 
       t = now
+      prefix = "        #{worker} #{id} sw  #{t}"
 
-      s = "        #{id} sw  #{t} #{action}"
+      s = "#{prefix} #{action}"
       s += " #{res.code} #{res.duration}s" if res
-      puts(colour(34, s))
+      echo(s)
 
       return unless @@dlevel['sw'] > 1
 
-      unless res
-        s = "        #{id} sw  #{t} #{Ruote.insp(data)}"
-        puts(colour(34, s))
+      if res
+
+        #pp res.from_json
+
+        j = res.from_json
+        info = j && j['workflowException']
+        echo("#{prefix} #{action} #{Ruote.insp(info)}") if info
+
+      else
+
+        echo("#{prefix} #{Ruote.insp(data)}")
       end
     end
 
@@ -101,6 +120,24 @@ module Ruote::Asw
     def self.now
 
       Time.now.strftime('%R:%S.%3N')
+    end
+
+    def self.worker
+
+      Thread.current['ruote_worker'].class.name.split('::').last.downcase[0, 3]
+    end
+
+    def self.echo(s)
+
+      col =
+        case Ruote.current_worker
+          when Ruote::Asw::DecisionWorker then '36;2'
+          when Ruote::Asw::ActivityWorker then '32;2'
+          else '34;2' # blue
+        end
+
+      #$stdout.puts(colour(col, s[0..11]) + s[12..-1])
+      $stdout.puts(colour(col, s))
     end
 
     def self.colour(mod, s, clear=false)

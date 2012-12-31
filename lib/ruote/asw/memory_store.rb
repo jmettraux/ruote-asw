@@ -59,9 +59,11 @@ module Ruote::Asw
       @msgs.select { |m| m['wfid'] == wfid }
     end
 
-    def del_msgs(msg_ids)
+    def del_msg(msg)
 
-      @msgs.delete_if { |m| msg_ids.include?(m['_id']) }
+      msg_id = msg['_id']
+
+      @msgs.delete_if { |m| m['_id'] == msg_id }
     end
 
     def purge!

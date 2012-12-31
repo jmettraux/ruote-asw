@@ -43,6 +43,18 @@ module Ruote::Asw
       nil # success
     end
 
+    def get(type, key)
+
+      (@docs[type] || {})[key]
+    end
+
+    def delete(doc)
+
+      @docs[doc['type']].delete(doc['_id'])
+
+      nil # success
+    end
+
     def any_msg?
 
       @msgs.any?
@@ -58,7 +70,8 @@ module Ruote::Asw
 
     def put_msg(msg)
 
-      @msgs << msg
+      #@msgs << msg
+      @msgs << Ruote.fulldup(msg)
 
       nil
     end

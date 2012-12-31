@@ -19,6 +19,8 @@ describe 'ruote-asw with a MemoryStore' do
         Ruote::Asw::DecisionWorker.new(
         Ruote::Asw::ActivityWorker.new(
           new_storage(:memory_store => true, :no_preparation => true))))
+
+    @dboard.noisy = (ENV['NOISY'] == 'true')
   end
 
   after(:each) do

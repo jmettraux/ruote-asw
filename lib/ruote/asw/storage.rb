@@ -93,6 +93,8 @@ module Ruote::Asw
 
     def get_msgs
 
+      return task.fetch_msgs if task && task.any_msg?
+
       meth, task_list =
         if activity_worker?
           [ :poll_for_decision_task, @decision_task_list ]
@@ -112,7 +114,7 @@ module Ruote::Asw
 
       set_task(r)
 
-      task ? task.msgs : []
+      []
     end
 
     def get_schedules(delta, now)
@@ -122,37 +124,32 @@ module Ruote::Asw
 
     def put_msg(action, options)
 
-      msg = options.merge('action' => action)
-      msg['put_at'] = Ruote.now_to_utc_s
+      msg = options.merge('action' => action, 'put_at'=> Ruote.now_to_utc_s)
 
-      action = 'apply' if action == 'launch' && ( ! options.has_key?('stash'))
-        #
-        # sub-processes (sub-launches) are running inside of the same
-        # SWF workflow execution
+      return launch(msg) if action == 'launch' && msg.has_key?('stash')
 
-      case action
-
-        when 'launch', 'relaunch'
-
-          @store.put_msg(msg)
-
-          @swf_client.start_workflow_execution(
-            'domain' => @swf_domain,
-            'workflowId' => msg['wfid'],
-            'workflowType' => {
-              'name' => @workflow_name, 'version' => @version },
-            'taskList' => { 'name' => @decision_task_list },
-            'taskStartToCloseTimeout' => @decision_task_timeout.to_s)
-            #'input' => bundle_id)
-
-        else
-
-          # TODO
-          # BREAK IT ? IS THE ONLY SPECIAL CASE "LAUNCH" (A NEW WF EXECUTION) ?
-
-          p [ action, options ]
+      if task
+        task.put_msg(msg)
+      else
+        raise NotImplementedError
       end
     end
+
+    def launch(msg)
+
+      @store.put_msg(msg)
+
+      @swf_client.start_workflow_execution(
+        'domain' => @swf_domain,
+        'workflowId' => msg['wfid'],
+        'workflowType' => {
+          'name' => @workflow_name, 'version' => @version },
+        'taskList' => { 'name' => @decision_task_list },
+        'taskStartToCloseTimeout' => @decision_task_timeout.to_s)
+        #'input' => bundle_id)
+    end
+      #
+      # TODO: make protected
 
     STORE_TYPES = %w[ configurations variables ]
 

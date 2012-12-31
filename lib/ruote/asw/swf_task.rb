@@ -27,7 +27,7 @@ module Ruote::Asw
 
   class SwfTask
 
-    attr_reader :wfid, :msgs
+    attr_reader :wfid
 
     def initialize(store, res)
 
@@ -41,6 +41,26 @@ module Ruote::Asw
       (@docs[doc['type']] ||= {})[doc['_id']] = doc
 
       nil # success
+    end
+
+    def any_msg?
+
+      @msgs.any?
+    end
+
+    def fetch_msgs
+
+      r = @msgs.dup
+      @msgs.clear
+
+      r
+    end
+
+    def put_msg(msg)
+
+      @msgs << msg
+
+      nil
     end
   end
 end

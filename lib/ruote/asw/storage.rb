@@ -95,6 +95,8 @@ module Ruote::Asw
 
     def get_msgs
 
+      # TODO: implement multi-tasklist system for activities
+
       return task.fetch_msgs if task && task.any_msg?
 
       meth, task_list =
@@ -174,6 +176,52 @@ module Ruote::Asw
       return @store.delete(doc) if STORE_TYPES.include?(doc['type'])
 
       task.delete(doc)
+    end
+
+    def done(msg)
+
+      if activity_worker?
+        activity_done(msg)
+      else
+        decision_done(msg)
+      end
+    end
+
+    def decision_done(msg)
+
+      return if task.any_msg?
+
+      # TODO
+
+      # TODO save state...
+      # TODO remove state...
+
+      decisions = []
+      decisions << {
+        'decisionType' => 'CompleteWorkflowExecution',
+        'completeWorkflowExecutionAttributes' => { 'result' => msg } }
+
+      @swf_client.respond_decision_task_completed(
+        'taskToken' => task.task_token,
+        'decisions' => decisions)
+
+      @context.notify(
+        'action' => 'decision_done',
+        'fei' => msg['fei'],
+        'wfid' => msg['wfid'],
+        'put_at' => Ruote.now_to_utc_s)
+    end
+
+    def activity_done(msg)
+
+      # TODO
+
+      # save state???
+    end
+
+    def expression_wfids(opts)
+
+      raise NotImplementedError
     end
 
     def purge!

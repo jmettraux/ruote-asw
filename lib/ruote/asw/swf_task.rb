@@ -27,12 +27,15 @@ module Ruote::Asw
 
   class SwfTask
 
-    attr_reader :wfid
+    attr_reader :wfid, :task_token
 
     def initialize(store, res)
 
       @wfid = res['workflowExecution']['workflowId']
+      @task_token = res['taskToken']
+
       @msgs = store.get_msgs(@wfid)
+      #@docs = store.get_data(@wfid)
       @docs = {}
     end
 

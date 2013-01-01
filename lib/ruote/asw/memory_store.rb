@@ -33,7 +33,7 @@ module Ruote::Asw
         'configurations' => { 'engine' => {} },
         'variables' => {}
       }
-
+      @data = {}
       @msgs = []
     end
 
@@ -47,6 +47,11 @@ module Ruote::Asw
       @globals[doc['type']][doc['_id']] = doc
 
       nil # success
+    end
+
+    def purge(wfid)
+
+      @data.delete(wfid)
     end
 
     def put_msg(msg)
@@ -67,6 +72,8 @@ module Ruote::Asw
     end
 
     def purge!
+
+      # TODO
     end
   end
 end

@@ -68,6 +68,7 @@ module Ruote::Asw
       register_domain
       register_activity_type
       register_workflow_type
+      respond_decision_task_completed
       start_workflow_execution
       terminate_workflow_execution
 

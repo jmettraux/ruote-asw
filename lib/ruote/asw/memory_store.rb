@@ -29,29 +29,22 @@ module Ruote::Asw
 
     def initialize
 
-      @globals = {
+      @system = {
         'configurations' => { 'engine' => {} },
         'variables' => {}
       }
-      @data = {}
+      @states = {}
       @msgs = []
     end
 
-    def get(type, key)
+    def load_system
 
-      @globals[type][key]
+      @system
     end
 
     def put(doc, opts)
 
-      @globals[doc['type']][doc['_id']] = doc
-
-      nil # success
-    end
-
-    def purge(wfid)
-
-      @data.delete(wfid)
+      @system[doc['type']][doc['_id']] = doc
     end
 
     def put_msg(msg)
@@ -64,12 +57,22 @@ module Ruote::Asw
       @msgs.select { |m| m['wfid'] == wfid }
     end
 
-    def del_msg(msg)
-
-      msg_id = msg['_id']
-
-      @msgs.delete_if { |m| m['_id'] == msg_id }
-    end
+#    def purge(wfid)
+#
+#      @data.delete(wfid)
+#    end
+#
+#    def del_msg(msg)
+#
+#      msg_id = msg['_id']
+#
+#      @msgs.delete_if { |m| m['_id'] == msg_id }
+#    end
+#
+#    def expression_wfids(opts)
+#
+#      @data.keys.sort
+#    end
 
     def purge!
 

@@ -23,13 +23,23 @@
 #++
 
 require 'ruote/asw/swf_client'
-require 'ruote/asw/swf_task'
+require 'ruote/asw/tasks'
 
 
 module Ruote::Asw
 
   class Storage
     include Ruote::StorageBase
+
+    attr_reader :swf_client, :store
+
+    attr_reader :swf_domain
+    attr_reader :workflow_name
+    attr_reader :activity_name
+    attr_reader :wa_version
+    attr_reader :decision_task_list
+    attr_reader :activity_task_list
+    attr_reader :decision_task_timeout
 
     def initialize(
       aws_access_key_id,
@@ -74,7 +84,7 @@ module Ruote::Asw
 
       @workflow_name = 'ruote_asw_workflow'
       @activity_name = 'ruote_asw_activity'
-      @version = '0.1'
+      @wa_version = '0.1'
 
       @decision_task_list = 'ruote_asw'
       @activity_task_list = 'ruote_asw'
@@ -86,11 +96,23 @@ module Ruote::Asw
     # the methods a ruote storage must provide
     #++
 
-    def reserve(doc)
+    %w[
 
-      @store.del_msg(doc) if doc['type'] == 'msgs'
+      delete
+      done
+      expression_wfids
+      get_schedules
+      get_many
+      get
+      put
+      put_msg
+      reserve
 
-      true
+    ].each do |m|
+
+      class_eval(%{
+        def #{m}(*args); task.#{m}(*args); end
+      }, __FILE__, __LINE__)
     end
 
     def get_msgs
@@ -100,7 +122,7 @@ module Ruote::Asw
       return task.fetch_msgs if task && task.any_msg?
 
       meth, task_list =
-        if activity_worker?
+        if worker.name.index('activity')
           [ :poll_for_activity_task, @activity_task_list ]
         else
           [ :poll_for_decision_task, @decision_task_list ]
@@ -119,110 +141,6 @@ module Ruote::Asw
       set_task(r)
 
       []
-    end
-
-    def get_schedules(delta, now)
-
-      []
-    end
-
-    def put_msg(action, options)
-
-      msg = options.merge('action' => action, 'put_at'=> Ruote.now_to_utc_s)
-
-      return launch(msg) if action == 'launch' && msg.has_key?('stash')
-
-      if task
-        task.put_msg(msg)
-      else
-        raise NotImplementedError
-      end
-    end
-
-    def launch(msg)
-
-      @store.put_msg(msg)
-
-      @swf_client.start_workflow_execution(
-        'domain' => @swf_domain,
-        'workflowId' => msg['wfid'],
-        'workflowType' => {
-          'name' => @workflow_name, 'version' => @version },
-        'taskList' => { 'name' => @decision_task_list },
-        'taskStartToCloseTimeout' => @decision_task_timeout.to_s)
-        #'input' => bundle_id)
-    end
-      #
-      # TODO: make protected
-
-    STORE_TYPES = %w[ configurations variables ]
-
-    def put(doc, opts={})
-
-      return @store.put(doc, opts) if STORE_TYPES.include?(doc['type'])
-
-      task.put(doc)
-    end
-
-    def get(type, key)
-
-      return @store.get(type, key) if STORE_TYPES.include?(type)
-
-      task.get(type, key)
-    end
-
-    def delete(doc)
-
-      return @store.delete(doc) if STORE_TYPES.include?(doc['type'])
-
-      task.delete(doc)
-    end
-
-    def done(msg)
-
-      if activity_worker?
-        activity_done(msg)
-      else
-        decision_done(msg)
-      end
-    end
-
-    def decision_done(msg)
-
-      return if task.any_msg?
-
-      # TODO
-
-      # TODO save state...
-      # TODO remove state...
-
-      decisions = []
-      decisions << {
-        'decisionType' => 'CompleteWorkflowExecution',
-        #'completeWorkflowExecutionAttributes' => { 'result' => msg } }
-        'completeWorkflowExecutionAttributes' => {} }
-
-      @swf_client.respond_decision_task_completed(
-        'taskToken' => task.task_token,
-        'decisions' => decisions)
-
-      @context.notify(
-        'action' => 'decision_done',
-        'fei' => msg['fei'],
-        'wfid' => msg['wfid'],
-        'put_at' => Ruote.now_to_utc_s)
-    end
-
-    def activity_done(msg)
-
-      # TODO
-
-      # save state??? ie let activity change "process state"?
-    end
-
-    def expression_wfids(opts)
-
-      raise NotImplementedError
     end
 
     def purge!
@@ -244,6 +162,8 @@ module Ruote::Asw
       prepare_activity_type
     end
 
+    protected
+
     def prepare_domain
 
       @swf_client.register_domain(
@@ -261,7 +181,7 @@ module Ruote::Asw
       @swf_client.register_workflow_type(
         'domain' => @swf_domain,
         'name' => @workflow_name,
-        'version' => @version,
+        'version' => @wa_version,
         'defaultChildPolicy' => 'TERMINATE',
         'defaultExecutionStartToCloseTimeout' => (365 * 24 * 3600).to_s,
           # 1 year max (the default)
@@ -281,7 +201,7 @@ module Ruote::Asw
       @swf_client.register_activity_type(
         'domain' => @swf_domain,
         'name' => @activity_name,
-        'version' => @version,
+        'version' => @wa_version,
         'defaultTaskList' => { 'name' => @activity_task_list },
         'defaultTaskHeartbeatTimeout' => 'NONE',
         'defaultTaskScheduleToCloseTimeout' => 'NONE',
@@ -293,26 +213,14 @@ module Ruote::Asw
       raise sce unless sce.message.match(/TypeAlreadyExistsFault/)
     end
 
-    protected
-
-    def decision_worker?
-
-      ! activity_worker?
-    end
-
-    def activity_worker?
-
-      !! worker.name.index('activity')
-    end
-
     def set_task(res)
 
-      Thread.current['ruote_asw_task'] = res ? SwfTask.new(@store, res) : nil
+      Thread.current['ruote_asw_task'] = Ruote::Asw.new_task(self, res)
     end
 
     def task
 
-      Thread.current['ruote_asw_task']
+      Thread.current['ruote_asw_task'] || Ruote::Asw.new_task(self, nil)
     end
   end
 end

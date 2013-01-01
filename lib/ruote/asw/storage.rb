@@ -199,7 +199,8 @@ module Ruote::Asw
       decisions = []
       decisions << {
         'decisionType' => 'CompleteWorkflowExecution',
-        'completeWorkflowExecutionAttributes' => { 'result' => msg } }
+        #'completeWorkflowExecutionAttributes' => { 'result' => msg } }
+        'completeWorkflowExecutionAttributes' => {} }
 
       @swf_client.respond_decision_task_completed(
         'taskToken' => task.task_token,
@@ -216,7 +217,7 @@ module Ruote::Asw
 
       # TODO
 
-      # save state???
+      # save state??? ie let activity change "process state"?
     end
 
     def expression_wfids(opts)

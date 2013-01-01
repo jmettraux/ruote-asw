@@ -22,6 +22,7 @@
 # Made in Japan.
 #++
 
+require 'yaml'
 require 'ruote/util/misc'
 
 
@@ -82,17 +83,29 @@ module Ruote::Asw
 
       return unless @@dlevel['sw'] > 1
 
+      j = res && res.from_json
+      info = j && j['workflowException']
+      echo("#{prefix} #{action} #{Ruote.insp(info)}") if info
+
+      return unless @@dlevel['sw'] > 2
+
+      if res.nil?
+
+        #echo("#{prefix} #{Ruote.insp(data)}")
+        echo("#{prefix} to swf:")
+        YAML.dump(data).split("\n")[1..-1].each do |l|
+          echo("#{prefix}   #{l}")
+        end
+      end
+
+      return unless @@dlevel['sw'] > 3
+
       if res
 
-        #pp res.from_json
-
-        j = res.from_json
-        info = j && j['workflowException']
-        echo("#{prefix} #{action} #{Ruote.insp(info)}") if info
-
-      else
-
-        echo("#{prefix} #{Ruote.insp(data)}")
+        echo("#{prefix} from swf:")
+        YAML.dump(res.from_json).split("\n")[1..-1].each do |l|
+          echo("#{prefix}   #{l}")
+        end
       end
     end
 

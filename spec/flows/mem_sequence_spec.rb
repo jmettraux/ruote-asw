@@ -63,9 +63,7 @@ describe 'ruote-asw with a MemoryStore' do
     ps.expressions.size.should == 2
     ps.errors.size.should == 0
 
-    @dboard.storage.swf_client.open_executions(
-      @dboard.storage.swf_domain
-    ).should_not be_empty
+    @dboard.storage.open_executions.should_not be_empty
   end
 end
 

@@ -207,6 +207,7 @@ module Ruote::Asw
       # TODO: complete me!
 
       decisions = []
+
       decisions << {
         'decisionType' => 'CompleteWorkflowExecution',
         #'completeWorkflowExecutionAttributes' => { 'result' => msg } }

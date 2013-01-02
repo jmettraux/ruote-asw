@@ -152,6 +152,15 @@ module Ruote::Asw
     end
 
     #--
+    # extra methods
+    #++
+
+    def open_executions
+
+      @swf_client.open_executions(@swf_domain)
+    end
+
+    #--
     # SWF preparation
     #++
 

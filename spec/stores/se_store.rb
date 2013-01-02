@@ -10,31 +10,12 @@
 require 'spec_helper'
 
 
-describe 'ruote-asw with a MemoryStore' do
+shared_examples 'a store' do
 
-  before(:each) do
-
-    @dboard =
-      Ruote::Dashboard.new(
-        Ruote::Asw::DecisionWorker.new(
-        Ruote::Asw::ActivityWorker.new(
-          new_storage(:memory_store => true, :no_preparation => true))))
-
-    @dboard.noisy = (ENV['NOISY'] == 'true')
-  end
-
-  after(:each) do
-
-    @dboard.shutdown
-    @dboard.storage.purge!
-  end
-
-  it 'flows from a to b' do
+  it 'is empty when the flow terminates' do
 
     pdef =
       Ruote.define do
-        noop # a
-        noop # b
       end
 
     wfid = @dboard.launch(pdef)
@@ -46,7 +27,7 @@ describe 'ruote-asw with a MemoryStore' do
     @dboard.storage.store.get_execution(wfid).should == nil
   end
 
-  it 'stalls and state is preserved' do
+  it 'retains the state when the flow stalls' do
 
     pdef =
       Ruote.define do

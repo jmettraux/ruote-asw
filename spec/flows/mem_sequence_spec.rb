@@ -42,6 +42,8 @@ describe 'ruote-asw with a MemoryStore' do
     @dboard.wait_for('decision_done')
 
     @dboard.processes.should be_empty
+
+    @dboard.storage.store.get_execution(wfid).should == nil
   end
 
   it 'stalls and state is preserved' do

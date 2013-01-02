@@ -82,6 +82,20 @@ module Ruote::Asw
     def put_execution(wfid, execution)
 
       @executions[wfid] = execution
+
+      nil
+    end
+
+    def get_execution(wfid)
+
+      @executions[wfid]
+    end
+
+    def del_execution(wfid)
+
+      @executions.delete(wfid)
+
+      nil
     end
 
     def purge!

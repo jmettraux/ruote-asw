@@ -208,10 +208,13 @@ module Ruote::Asw
 
       decisions = []
 
-      decisions << {
-        'decisionType' => 'CompleteWorkflowExecution',
-        #'completeWorkflowExecutionAttributes' => { 'result' => msg } }
-        'completeWorkflowExecutionAttributes' => {} }
+      if execution_over?
+
+        decisions << {
+          'decisionType' => 'CompleteWorkflowExecution',
+          #'completeWorkflowExecutionAttributes' => { 'result' => msg } }
+          'completeWorkflowExecutionAttributes' => {} }
+      end
 
       @storage.swf_client.respond_decision_task_completed(
         'taskToken' => task_token,
@@ -223,7 +226,18 @@ module Ruote::Asw
         'wfid' => msg['wfid'],
         'put_at' => Ruote.now_to_utc_s)
 
-      @storage.store.put_execution(wfid, @execution)
+      if execution_over?
+        @storage.store.del_execution(wfid)
+      else
+        @storage.store.put_execution(wfid, @execution)
+      end
+    end
+
+    protected
+
+    def execution_over?
+
+      @execution['expressions'].empty?
     end
   end
 

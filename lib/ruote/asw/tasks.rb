@@ -72,9 +72,12 @@ module Ruote::Asw
       []
     end
 
-    protected
+    def expression_wfids(opts={})
 
-    SYSTEM_TYPES = %w[ configurations variables ]
+      @storage.store.expression_wfids(opts)
+    end
+
+    protected
 
     def system_doc?(doc)
 
@@ -83,7 +86,7 @@ module Ruote::Asw
 
     def system_type?(type)
 
-      SYSTEM_TYPES.include?(type)
+      Ruote::Asw::Storage::SYSTEM_TYPES.include?(type)
     end
   end
 
@@ -96,6 +99,11 @@ module Ruote::Asw
       return launch(msg) if action == 'launch' && msg.has_key?('stash')
 
       signal(msg)
+    end
+
+    def get_many(type, key=nil, opts={})
+
+      @storage.store.get_many(type, key, opts)
     end
 
     protected
@@ -132,7 +140,7 @@ module Ruote::Asw
       @store_msgs = @storage.store.get_msgs(@wfid)
       @msgs = @store_msgs.dup
 
-      @state = {
+      @execution = {
         'expressions' => {}, 'errors' => {}
       }
     end
@@ -168,14 +176,14 @@ module Ruote::Asw
 
       return super if system_type?(type)
 
-      @state[type][key]
+      @execution[type][key]
     end
 
     def put(doc, opts={})
 
       return super if system_doc?(doc)
 
-      @state[doc['type']][doc['_id']] = doc
+      @execution[doc['type']][doc['_id']] = doc
 
       nil
     end
@@ -184,7 +192,7 @@ module Ruote::Asw
 
       return super if system_doc?(doc)
 
-      @state[doc['type']].delete(doc['_id'])
+      @execution[doc['type']].delete(doc['_id'])
 
       nil
     end
@@ -213,6 +221,8 @@ module Ruote::Asw
         'fei' => msg['fei'],
         'wfid' => msg['wfid'],
         'put_at' => Ruote.now_to_utc_s)
+
+      @storage.store.put_execution(wfid, @execution)
     end
   end
 

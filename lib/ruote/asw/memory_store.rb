@@ -33,7 +33,7 @@ module Ruote::Asw
         'configurations' => { 'engine' => {} },
         'variables' => {}
       }
-      @states = {}
+      @executions = {}
       @msgs = []
     end
 
@@ -57,22 +57,32 @@ module Ruote::Asw
       @msgs.select { |m| m['wfid'] == wfid }
     end
 
-#    def purge(wfid)
-#
-#      @data.delete(wfid)
-#    end
-#
-#    def del_msg(msg)
-#
-#      msg_id = msg['_id']
-#
-#      @msgs.delete_if { |m| m['_id'] == msg_id }
-#    end
-#
-#    def expression_wfids(opts)
-#
-#      @data.keys.sort
-#    end
+    def get_many(type, key, opts)
+
+      # TODO: :skip, :limit, :count, :descending
+
+      docs =
+        @executions.values.collect { |e|
+          (e[type] || {}).values
+        }.flatten(1)
+
+      if key
+        keys = Array(key).map { |k| k.is_a?(String) ? "!#{k}" : k }
+        docs.select { |doc| Ruote::StorageBase.key_match?(keys, doc) }
+      else
+        docs
+      end
+    end
+
+    def expression_wfids(opts)
+
+      @executions.keys.sort
+    end
+
+    def put_execution(wfid, execution)
+
+      @executions[wfid] = execution
+    end
 
     def purge!
 

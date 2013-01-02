@@ -29,23 +29,43 @@ describe 'ruote-asw with a MemoryStore' do
     @dboard.storage.purge!
   end
 
-  describe 'sequence' do
+  it 'flows from a to b' do
 
-    it 'flows from a to b' do
+    pdef =
+      Ruote.define do
+        noop # a
+        noop # b
+      end
 
-      pdef =
-        Ruote.define do
-          noop # a
-          noop # b
-        end
+    wfid = @dboard.launch(pdef)
 
-      wfid = @dboard.launch(pdef)
+    @dboard.wait_for('decision_done')
 
-      @dboard.wait_for(wfid)
-      @dboard.wait_for('decision_done')
+    @dboard.processes.should be_empty
+  end
 
-      p @dboard.processes
-    end
+  it 'stalls and state is preserved' do
+
+    pdef =
+      Ruote.define do
+        stall
+      end
+
+    wfid = @dboard.launch(pdef)
+
+    @dboard.wait_for('decision_done')
+
+    @dboard.storage.expression_wfids.should == [ wfid ]
+    @dboard.processes.size.should == 1
+
+    ps = @dboard.ps(wfid)
+
+    ps.expressions.size.should == 2
+    ps.errors.size.should == 0
+
+    @dboard.storage.swf_client.open_executions(
+      @dboard.storage.swf_domain
+    ).should_not be_empty
   end
 end
 

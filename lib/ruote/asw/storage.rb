@@ -31,6 +31,8 @@ module Ruote::Asw
   class Storage
     include Ruote::StorageBase
 
+    SYSTEM_TYPES = %w[ configurations variables ]
+
     attr_reader :swf_client, :store
 
     attr_reader :swf_domain

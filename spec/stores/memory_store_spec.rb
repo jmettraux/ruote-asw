@@ -9,8 +9,6 @@
 
 require 'spec_helper'
 
-require File.expand_path('../se_store', __FILE__)
-
 
 describe Ruote::Asw::MemoryStore do
 

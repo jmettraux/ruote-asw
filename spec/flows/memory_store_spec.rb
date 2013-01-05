@@ -2,9 +2,7 @@
 #
 # spec'ing ruote-asw
 #
-# Thu Dec 27 09:33:30 JST 2012
-#
-# Onomichi
+# Fri Jan  4 21:27:31 JST 2013
 #
 
 require 'spec_helper'
@@ -29,7 +27,7 @@ describe Ruote::Asw::MemoryStore do
     @dboard.storage.purge!
   end
 
-  it_behaves_like 'a store'
-  it_flows_with 'participants'
+  it_orchestrates 'flows with errors'
+  it_orchestrates 'flows with participants'
 end
 

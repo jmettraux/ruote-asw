@@ -79,7 +79,10 @@ module Ruote::Asw
       @preparation = true if conf.delete(:prepare_immediately) == true
 
       replace_engine_configuration({
-        'restless_worker' => true
+        'restless_worker' => true,
+          # not polling workers, no need to rest between polls...
+        'participant_threads_enabled' => false
+          # disabled 1 dispatch 1 thread...
       }.merge(conf))
 
       @decision_task_timeout = conf.delete('decision_task_timeout') || 10

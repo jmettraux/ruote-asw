@@ -7,10 +7,8 @@
 # Onomichi
 #
 
-require 'spec_helper'
 
-
-shared_examples 'a store' do
+shared_examples_for 'a store' do
 
   it 'is empty when the flow terminates' do
 
@@ -24,6 +22,7 @@ shared_examples 'a store' do
 
     @dboard.processes.should be_empty
 
+    @dboard.storage.expression_wfids.should == []
     @dboard.storage.store.get_execution(wfid).should == nil
   end
 

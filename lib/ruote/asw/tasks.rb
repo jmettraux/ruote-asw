@@ -41,6 +41,9 @@ module Ruote::Asw
     end
   end
 
+  #
+  # The root class for all tasks.
+  #
   class Task
 
     def initialize(storage)
@@ -88,13 +91,34 @@ module Ruote::Asw
 
       Ruote::Asw::Storage::SYSTEM_TYPES.include?(type)
     end
+
+    def prepare_msg(action, options, fulldup=false)
+
+      msg = fulldup ? Ruote.fulldup(options) : options.dup
+      pa = Ruote.now_to_utc_s
+
+      id =
+        [
+          action,
+          options['fei'] ? Ruote.sid(options['fei']) : options['wfid'],
+          pa.gsub(/[ :\.]/, '-')[0..-5]
+        ].compact.join('_')
+
+      msg['wfid'] ||= msg['fei']['wfid'] if msg['fei']
+
+      msg.merge!('_id' => id, 'action' => action, 'put_at'=> pa)
+    end
   end
 
+  #
+  # The task class used for "off tasks", when an action has to be taken
+  # outside of a decision / activity task.
+  #
   class OffTask < Task
 
     def put_msg(action, options)
 
-      msg = options.merge('action' => action, 'put_at'=> Ruote.now_to_utc_s)
+      msg = prepare_msg(action, options)
 
       return launch(msg) if action == 'launch' && msg.has_key?('stash')
 
@@ -121,8 +145,19 @@ module Ruote::Asw
         'taskStartToCloseTimeout' => @storage.decision_task_timeout.to_s)
         #'input' => bundle_id)
     end
+
+    def signal(msg)
+
+      puts "--->SIGNAL>>> #{self.class}"
+      p msg
+      puts caller
+      puts '---<<<SIGNAL<'
+    end
   end
 
+  #
+  # The parent class for decision and activity tasks.
+  #
   class SwfTask < Task
 
     attr_reader :wfid
@@ -137,26 +172,13 @@ module Ruote::Asw
       @wfid = res['workflowExecution']['workflowId']
       @task_token = res['taskToken']
 
-      @store_msgs = @storage.store.get_msgs(@wfid)
-      @msgs = @store_msgs.dup
-
-      @execution = {
-        'expressions' => {}, 'errors' => {}
-      }
+      @execution = { 'expressions' => {}, 'errors' => {} }
+        # TODO: the execution should be fetched from the store...
     end
 
     def any_msg?
 
       @msgs.any?
-    end
-
-    def put_msg(action, options)
-
-      @msgs <<
-        Ruote.fulldup(options.merge(
-          'action' => action, 'put_at'=> Ruote.now_to_utc_s))
-
-      nil
     end
 
     def fetch_msgs
@@ -198,7 +220,20 @@ module Ruote::Asw
     end
   end
 
+  #
+  # Wraps an SWF decision task.
+  #
   class DecisionTask < SwfTask
+
+    def initialize(storage, res)
+
+      super
+
+      @store_msgs = @storage.store.get_msgs(@wfid)
+      @msgs = @store_msgs.dup
+
+      @activities = []
+    end
 
     def done(msg)
 
@@ -214,11 +249,38 @@ module Ruote::Asw
           'decisionType' => 'CompleteWorkflowExecution',
           #'completeWorkflowExecutionAttributes' => { 'result' => msg } }
           'completeWorkflowExecutionAttributes' => {} }
+
+      else
+
+        @activities.each do |msg|
+
+          @storage.store.put_msg(msg)
+
+          decisions << {
+            'decisionType' => 'ScheduleActivityTask',
+            'scheduleActivityTaskDecisionAttributes' => {
+              'activityType' => {
+                'name' => @storage.activity_name,
+                'version' => @storage.wa_version },
+              'activityId' => activity_id(msg),
+              'control' => msg['_id'],
+              'taskList' => { 'name' => @storage.activity_task_list } } }
+              #'input' => msg['_id'],
+              #'heartbeatTimeout' => 'NONE' } }
+              #'scheduleToCloseTimeout' => 'NONE',
+              #'scheduleToStartTimeout' => 'NONE',
+              #'startToCloseTimeout' => 'NONE',
+
+          # TODO: implement round-robin on activity task list for fairness...
+        end
+
       end
 
       @storage.swf_client.respond_decision_task_completed(
         'taskToken' => task_token,
         'decisions' => decisions)
+
+      @storage.store.del_msgs(@store_msgs)
 
       @storage.context.notify(
         'action' => 'decision_done',
@@ -233,15 +295,63 @@ module Ruote::Asw
       end
     end
 
+    def put_msg(action, options)
+
+      msg = prepare_msg(action, options, true)
+
+      if action.match(/^dispatch/)
+
+        @activities << msg
+
+      else
+
+        @msgs << msg
+      end
+
+
+      nil
+    end
+
     protected
 
     def execution_over?
 
       @execution['expressions'].empty?
     end
+
+    def activity_id(msg)
+      [
+        case msg['action']
+          when 'dispatch' then 'd'
+          when 'dispatch_cancel' then 'dc'
+          else msg['action']
+        end,
+        msg['fei']['wfid'],
+        msg['fei']['expid'],
+        msg['fei']['subid']
+      ].join('!')[0, 256]
+    end
   end
 
+  #
+  # Wraps an SWF activity task.
+  #
   class ActivityTask < SwfTask
+
+    def initialize(storage, res)
+
+      super
+
+      @store_msgs = @storage.store.get_activity_msgs(@wfid)
+      @msgs = @store_msgs.dup
+
+      @activities = []
+    end
+
+    def put_msg(action, options)
+
+      @msgs << prepare_msg(action, options)
+    end
 
     def done(msg)
 

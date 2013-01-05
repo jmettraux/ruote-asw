@@ -54,7 +54,19 @@ module Ruote::Asw
 
     def get_msgs(wfid)
 
-      @msgs.select { |m| m['wfid'] == wfid }
+      @msgs.select { |m| m['wfid'] == wfid && m['action'] != 'dispatch' }
+    end
+
+    def get_activity_msgs(wfid)
+
+      @msgs.select { |m| m['wfid'] == wfid && m['action'] == 'dispatch' }
+    end
+
+    def del_msgs(msgs)
+
+      # let's not worry with mutexes for this memstore implementation
+
+      msgs.each { |m| @msgs.delete(m) }
     end
 
     def get_many(type, key, opts)

@@ -8,6 +8,10 @@ require 'ruote-asw'
 #
 require File.expand_path('../../test/connection.rb', __FILE__)
 
+# require all the support code
+#
+Dir[File.expand_path('../support/*.rb', __FILE__)].each { |pa| require(pa) }
+
 # require all the shared examples
 #
 Dir[File.expand_path('../**/sh_*.rb', __FILE__)].each { |pa| require(pa) }

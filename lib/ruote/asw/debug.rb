@@ -45,14 +45,17 @@ module Ruote::Asw
       prefix = "        #{worker} #{id}  ht #{t}"
 
       s = "#{prefix} #{meth.upcase} #{uri.to_s}"
-      s += " #{res.code} #{res.duration}s" if res
+      if res
+        s += " #{res.code} #{res.duration}s"
+      elsif err
+        s += " err #{err.class}: #{err.message} #{err.duration}s"
+      end
+
       echo(s)
 
       return unless @@dlevel['ht'] > 1
 
       echo(res.body) if res && res.code != 200
-
-      echo("#{prefix} err #{err.class}: #{err.message} #{err.duration}s") if err
     end
 
     def self.request_id(headers)

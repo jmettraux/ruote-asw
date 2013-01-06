@@ -134,13 +134,15 @@ module Ruote::Asw
         end
 
       r = begin
+
         @swf_client.send(
           meth,
           'domain' => @swf_domain,
           'taskList' => { 'name' => task_list },
           'identity' => worker.identity)
-      #rescue Timeout::Error
-      #  nil
+
+      rescue Errno::ETIMEDOUT
+        nil
       end
 
       set_task(r)

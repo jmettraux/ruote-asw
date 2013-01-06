@@ -13,6 +13,9 @@ def new_storage(opts)
   aki = ENV['AWS_ACCESS_KEY_ID']
   sak = ENV['AWS_SECRET_ACCESS_KEY']
 
+  #opts['wait_logger_timeout'] = 180
+    # SWF can be quite demanding
+
   if opts.delete(:memory_store) == true
     #
     # use in-memory store

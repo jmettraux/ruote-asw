@@ -14,19 +14,12 @@ describe Ruote::Asw::MemoryStore do
 
   before(:each) do
 
-    @dboard =
-      Ruote::Dashboard.new(
-        Ruote::Asw::DecisionWorker.new(
-        Ruote::Asw::ActivityWorker.new(
-          new_storage(:memory_store => true, :no_preparation => true))))
-
-    @dboard.noisy = (ENV['NOISY'] == 'true')
+    setup_dboard_with_memory_store
   end
 
   after(:each) do
 
-    @dboard.shutdown
-    @dboard.storage.purge!
+    teardown_dboard
   end
 
   it_behaves_like 'a store'

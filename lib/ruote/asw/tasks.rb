@@ -27,7 +27,7 @@ module Ruote::Asw
 
   def self.new_task(storage, res)
 
-    if res.nil?
+    if res.nil? || res['workflowExecution'].nil?
 
       OffTask.new(storage)
 
@@ -146,7 +146,11 @@ module Ruote::Asw
         #'input' => bundle_id)
     end
 
+    MINOR_ACTIONS = %w[ participant_registered ]
+
     def signal(msg)
+
+      return if MINOR_ACTIONS.include?(msg['action'])
 
       puts "--->SIGNAL>>> #{self.class}"
       p msg
@@ -172,8 +176,16 @@ module Ruote::Asw
       @wfid = res['workflowExecution']['workflowId']
       @task_token = res['taskToken']
 
-      @execution = { 'expressions' => {}, 'errors' => {} }
-        # TODO: the execution should be fetched from the store...
+      @execution =
+        @storage.store.get_execution(@wfid) ||
+        { 'expressions' => {}, 'errors' => {} }
+
+    #rescue => e
+    #  puts '>' + '-' * 79
+    #  p e
+    #  pp res
+    #  puts '<' + '-' * 79
+    #  raise e
     end
 
     def any_msg?
@@ -344,20 +356,31 @@ module Ruote::Asw
 
       @store_msgs = @storage.store.get_activity_msgs(@wfid)
       @msgs = @store_msgs.dup
-
-      @activities = []
     end
 
     def put_msg(action, options)
 
-      @msgs << prepare_msg(action, options)
+      msg = prepare_msg(action, options)
+
+      if action == 'receive'
+
+        @storage.store.put_msg(msg)
+
+        @storage.swf_client.respond_activity_task_completed(
+          'taskToken' => task_token)
+          #'result' => 'nada'
+
+      else
+
+        # TODO: deal with out of band messages, signal???
+
+        @msgs << msg
+      end
     end
 
     def done(msg)
 
-      return if any_msg?
-
-      raise NotImplementedError
+      # nothing to do, the 'receive' action responded to SWF.
     end
   end
 end

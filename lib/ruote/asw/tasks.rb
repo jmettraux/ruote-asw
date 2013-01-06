@@ -358,17 +358,19 @@ module Ruote::Asw
       @msgs = @store_msgs.dup
     end
 
+    FINAL_ACTIONS = %w[ receive error_intercepted ]
+
     def put_msg(action, options)
 
       msg = prepare_msg(action, options)
 
-      if action == 'receive'
+      if FINAL_ACTIONS.include?(action)
 
         @storage.store.put_msg(msg)
 
         @storage.swf_client.respond_activity_task_completed(
-          'taskToken' => task_token)
-          #'result' => 'nada'
+          'taskToken' => task_token,
+          'result' => action)
 
       else
 

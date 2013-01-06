@@ -59,6 +59,25 @@ describe 'ruote-asw and flows' do
     r['workitem']['fields']['dennou'].should == 'coil'
   end
 
-  it 'passes back error in participants to the decision side'
+  it 'passes back error in participants to the decision side' do
+
+    @dboard.register 'murphy' do |workitem|
+      raise 'murphy!'
+    end
+
+    pdef = Ruote.define { murphy }
+
+    wfid = @dboard.launch(pdef)
+    @dboard.wait_for('error_intercepted')
+    @dboard.wait_for('decision_done')
+
+    ps = @dboard.ps(wfid)
+    ps.expressions.size.should == 2
+    ps.errors.size.should == 1
+    ps.errors.first.message.should == '#<RuntimeError: murphy!>'
+
+    @dboard.storage.expression_wfids.should == [ wfid ]
+    @dboard.storage.open_executions.size.should == 1
+  end
 end
 

@@ -17,7 +17,7 @@ def new_storage(opts)
     # SWF can be quite demanding
   opts['swf_task_list'] ||= "ruote_asw_test_task_list_#{Time.now.to_f}_#{rand}"
 
-  if opts.delete(:memory_store) == true
+  if ENV['RUOTE_ASW_STORE'].to_s.start_with?('m')
     #
     # use in-memory store
 

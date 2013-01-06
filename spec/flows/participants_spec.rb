@@ -5,8 +5,20 @@
 # Fri Jan  4 21:09:36 JST 2013
 #
 
+require 'spec_helper'
 
-shared_examples_for 'flows with participants' do
+
+describe 'ruote-asw and flows' do
+
+  before(:each) do
+
+    setup_dboard
+  end
+
+  after(:each) do
+
+    teardown_dboard
+  end
 
   it 'dispatches to participants' do
 

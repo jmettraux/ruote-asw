@@ -7,8 +7,20 @@
 # Onomichi
 #
 
+require 'spec_helper'
 
-shared_examples_for 'a store' do
+
+describe 'the ruote-asw store' do
+
+  before(:each) do
+
+    setup_dboard
+  end
+
+  after(:each) do
+
+    teardown_dboard
+  end
 
   it 'is empty when the flow terminates' do
 

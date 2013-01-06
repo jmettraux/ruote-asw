@@ -7,13 +7,13 @@
 
 module DashboardHelper
 
-  def setup_dboard_with_memory_store
+  def setup_dboard
 
     @dboard =
       Ruote::Dashboard.new(
         Ruote::Asw::DecisionWorker.new(
         Ruote::Asw::ActivityWorker.new(
-          new_storage(:memory_store => true, :no_preparation => true))))
+          new_storage(:no_preparation => true))))
 
     @dboard.noisy = (ENV['NOISY'] == 'true')
   end

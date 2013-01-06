@@ -15,6 +15,7 @@ def new_storage(opts)
 
   #opts['wait_logger_timeout'] = 180
     # SWF can be quite demanding
+  opts['swf_task_list'] ||= "ruote_asw_test_task_list_#{Time.now.to_f}_#{rand}"
 
   if opts.delete(:memory_store) == true
     #

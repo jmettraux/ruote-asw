@@ -78,6 +78,9 @@ module Ruote::Asw
       @preparation = false if conf.delete(:no_preparation) == true
       @preparation = true if conf.delete(:prepare_immediately) == true
 
+      task_list = conf.delete('swf_task_list') || 'ruote_asw'
+        # differentiate decision/activity at some point?
+
       replace_engine_configuration({
         'restless_worker' => true,
           # not polling workers, no need to rest between polls...
@@ -91,8 +94,8 @@ module Ruote::Asw
       @activity_name = 'ruote_asw_activity'
       @wa_version = '0.1'
 
-      @decision_task_list = 'ruote_asw'
-      @activity_task_list = 'ruote_asw'
+      @decision_task_list = task_list
+      @activity_task_list =  task_list
 
       prepare if @preparation == true
     end

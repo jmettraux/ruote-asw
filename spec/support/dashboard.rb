@@ -9,8 +9,6 @@ module DashboardHelper
 
   def setup_dboard_with_memory_store
 
-    # TODO: use different task lists for each spec/test
-
     @dboard =
       Ruote::Dashboard.new(
         Ruote::Asw::DecisionWorker.new(
@@ -22,13 +20,19 @@ module DashboardHelper
 
   def teardown_dboard
 
+    sleep(0.500)
+
     @dboard.shutdown
     @dboard.storage.purge!
 
   rescue => e
+
+    #return if e.message == 'UnknownResourceFault'
+
     puts '~' * 80
     puts '~ teardown issue ~'
     p e
+    p e.message
     puts caller
   end
 end

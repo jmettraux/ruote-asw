@@ -59,6 +59,11 @@ describe 'the ruote-asw store' do
 
     #@dboard.storage.open_executions.should_not be_empty
       # too eventually consistent
+
+    e = @dboard.storage.store.get_execution(wfid)
+    e['wfid'].should == wfid
+    e['runid'].class.should == String
+      # make sure that we keep track of the runId in the execution info
   end
 end
 

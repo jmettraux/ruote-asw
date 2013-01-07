@@ -164,7 +164,7 @@ module Ruote::Asw
   #
   class SwfTask < Task
 
-    attr_reader :wfid
+    attr_reader :wfid, :runid
     attr_reader :task_token
 
     def initialize(storage, res)
@@ -174,18 +174,15 @@ module Ruote::Asw
       @res = res
 
       @wfid = res['workflowExecution']['workflowId']
+      @runid = res['workflowExecution']['runId']
       @task_token = res['taskToken']
 
       @execution =
         @storage.store.get_execution(@wfid) ||
         { 'expressions' => {}, 'errors' => {} }
 
-    #rescue => e
-    #  puts '>' + '-' * 79
-    #  p e
-    #  pp res
-    #  puts '<' + '-' * 79
-    #  raise e
+      @execution['wfid'] = @wfid
+      @execution['runid'] = @runid
     end
 
     def any_msg?

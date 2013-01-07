@@ -32,6 +32,8 @@ module Ruote::Asw
 
     @@next_drip = '|....'
 
+    # Log HTTP requests (and responses).
+    #
     def self.log_http(client, meth, uri, headers, body, res_or_err)
 
       return unless @@dlevel['ht'] > 0
@@ -58,19 +60,8 @@ module Ruote::Asw
       echo(res.body) if res && res.code != 200
     end
 
-    def self.request_id(headers)
-
-      if headers.respond_to?(:_drip)
-        d = headers._drip
-        @@next_drip = d[-1] + d[0..-2]
-      else
-        class << headers; attr_accessor :_drip; end
-        headers._drip = @@next_drip
-      end
-
-      headers.object_id.to_s(16)[0, 4] + headers._drip
-    end
-
+    # Log SWF requests (and responses).
+    #
     def self.log_swf(client, action, original_data, data, headers, res)
 
       return unless @@dlevel['sw'] > 0
@@ -99,6 +90,13 @@ module Ruote::Asw
         YAML.dump(data).split("\n")[1..-1].each do |l|
           echo("#{prefix}   #{l}")
         end
+
+      else
+
+        res.from_json['executionInfos'].each do |ei|
+          ex = ei['execution']
+          echo("#{prefix}   wi #{ex['workflowId']} ri #{ex['runId']}")
+        end if action == 'ListOpenWorkflowExecutions'
       end
 
       return unless @@dlevel['sw'] > 3
@@ -110,6 +108,19 @@ module Ruote::Asw
           echo("#{prefix}   #{l}")
         end
       end
+    end
+
+    def self.request_id(headers)
+
+      if headers.respond_to?(:_drip)
+        d = headers._drip
+        @@next_drip = d[-1] + d[0..-2]
+      else
+        class << headers; attr_accessor :_drip; end
+        headers._drip = @@next_drip
+      end
+
+      headers.object_id.to_s(16)[0, 4] + headers._drip
     end
 
     def self.parse_dlevel

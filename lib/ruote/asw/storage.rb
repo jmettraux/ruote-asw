@@ -155,6 +155,7 @@ module Ruote::Asw
 
     def purge!
 
+      @store.expression_wfids(nil).each { |wfid| terminate(wfid) }
       @swf_client.purge!(@swf_domain)
       @store.purge!
     end
@@ -166,6 +167,12 @@ module Ruote::Asw
     def open_executions
 
       @swf_client.open_executions(@swf_domain)
+    end
+
+    def terminate(wfid)
+
+      @swf_client.terminate_workflow_execution(
+        'domain' => @swf_domain, 'workflowId' => wfid)
     end
 
     #--

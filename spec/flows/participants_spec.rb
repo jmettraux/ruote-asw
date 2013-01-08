@@ -61,7 +61,7 @@ describe 'ruote-asw and flows' do
     r['workitem']['fields']['dennou'].should == 'coil'
   end
 
-  it 'passes back error in participants to the decision side' do
+  it 'passes back errors in participants' do
 
     @dboard.register 'murphy' do |workitem|
       raise 'murphy!'

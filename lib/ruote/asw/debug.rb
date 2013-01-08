@@ -64,6 +64,8 @@ module Ruote::Asw
     #
     def self.log_swf(client, action, original_data, data, headers, res)
 
+      jres = res && res.from_json
+
       return unless @@dlevel['sw'] > 0
 
       id = request_id(headers)
@@ -73,12 +75,12 @@ module Ruote::Asw
 
       s = "#{prefix} #{action}"
       s += " #{res.code} #{res.duration}s" if res
+      s += " #{task_to_s(jres)}" if jres && action.match(/^Poll/)
       echo(s)
 
       return unless @@dlevel['sw'] > 1
 
-      j = res && res.from_json
-      info = j && j['workflowException']
+      info = jres && jres['workflowException']
       echo("#{prefix} #{action} #{Ruote.insp(info)}") if info
 
       return unless @@dlevel['sw'] > 2
@@ -93,9 +95,8 @@ module Ruote::Asw
 
       else
 
-        res.from_json['executionInfos'].each do |ei|
-          ex = ei['execution']
-          echo("#{prefix}   wi #{ex['workflowId']} ri #{ex['runId']}")
+        jres['executionInfos'].each do |ei|
+          echo("#{prefix}   #{exe_to_s(ei)}")
         end if action == 'ListOpenWorkflowExecutions'
       end
 
@@ -104,10 +105,24 @@ module Ruote::Asw
       if res
 
         echo("#{prefix} from swf:")
-        YAML.dump(res.from_json).split("\n")[1..-1].each do |l|
+        YAML.dump(jres).split("\n")[1..-1].each do |l|
           echo("#{prefix}   #{l}")
         end
       end
+    end
+
+    def self.exe_to_s(h)
+
+      exe = h['workflowExecution'] || h['execution']
+
+      exe ? "#{exe['workflowId']} / #{exe['runId']}" : nil
+    end
+
+    def self.task_to_s(h)
+
+      exe = exe_to_s(h)
+
+      exe ? "task for #{exe}" : 'no task'
     end
 
     def self.request_id(headers)

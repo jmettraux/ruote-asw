@@ -70,6 +70,7 @@ module Ruote::Asw
       register_workflow_type
       respond_decision_task_completed
       respond_activity_task_completed
+      signal_workflow_execution
       start_workflow_execution
       terminate_workflow_execution
 

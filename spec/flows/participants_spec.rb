@@ -51,8 +51,6 @@ describe 'ruote-asw and flows' do
     pdef = Ruote.define { stamp }
 
     wfid = @dboard.launch(pdef)
-    @dboard.wait_for('decision_done')
-    @dboard.wait_for('dispatch')
     @dboard.wait_for('receive')
 
     r = @dboard.wait_for(wfid, :timeout => 60)

@@ -183,6 +183,9 @@ module Ruote::Asw
 
       @execution['wfid'] = @wfid
       @execution['runid'] = @runid
+
+      @store_msgs = get_msgs
+      @msgs = @store_msgs.dup
     end
 
     def any_msg?
@@ -237,9 +240,6 @@ module Ruote::Asw
     def initialize(storage, res)
 
       super
-
-      @store_msgs = @storage.store.get_msgs(@wfid)
-      @msgs = @store_msgs.dup
 
       @activities = []
     end
@@ -323,6 +323,11 @@ module Ruote::Asw
 
     protected
 
+    def get_msgs
+
+      @storage.store.get_msgs(@wfid)
+    end
+
     def execution_over?
 
       @execution['expressions'].empty?
@@ -351,8 +356,9 @@ module Ruote::Asw
 
       super
 
-      @store_msgs = @storage.store.get_activity_msgs(@wfid)
-      @msgs = @store_msgs.dup
+      @storage.swf_client.respond_activity_task_completed(
+        'taskToken' => task_token)
+        #'result' => 'over.')
     end
 
     FINAL_ACTIONS = %w[ receive error_intercepted ]
@@ -365,9 +371,24 @@ module Ruote::Asw
 
         @storage.store.put_msg(msg)
 
-        @storage.swf_client.respond_activity_task_completed(
-          'taskToken' => task_token,
-          'result' => action)
+        begin
+
+          @storage.swf_client.signal_workflow_execution(
+            'domain' => @storage.swf_domain,
+            'workflowId' => @wfid,
+            'signalName' => msg['_id'])
+
+        rescue Ruote::Asw::SwfClient::Error => e
+
+          raise e unless e.message == 'UnknownResourceFault'
+            #
+            # it's totally OK if that message makes it after the msg
+            # above got handled and breaks because the execution is
+            # already terminated...
+        end
+
+        # the signal makes SWF schedule a decision task for the flow,
+        # so that the msg gets processed
 
       else
 
@@ -379,7 +400,14 @@ module Ruote::Asw
 
     def done(msg)
 
-      # nothing to do, the 'receive' action responded to SWF.
+      @storage.store.del_msgs(@store_msgs)
+    end
+
+    protected
+
+    def get_msgs
+
+      @storage.store.get_activity_msgs(@wfid)
     end
   end
 end

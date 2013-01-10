@@ -22,14 +22,24 @@ describe 'ruote-asw and flows' do
     teardown_dboard
   end
 
-  it 'sets timers and react to their triggers' do
+  it 'sets timers and they trigger the schedule' do
 
-    pdef = Ruote.define { wait '3s' }
+    @dboard.register :nichts, Ruote::NullParticipant
+
+    pdef =
+      Ruote.define do
+        wait '5s'
+        nichts
+      end
 
     wfid = @dboard.launch(pdef)
-    r = @dboard.wait_for(wfid)
+    @dboard.wait_for('decision_done')
 
-    r['action'].should == 'terminated'
+    @dboard.storage.store.get_execution(wfid)['schedules'].size.should == 1
+
+    @dboard.wait_for('dispatched')
+
+    @dboard.storage.store.get_execution(wfid)['schedules'].size.should == 0
   end
 end
 

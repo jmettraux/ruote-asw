@@ -355,7 +355,8 @@ module Ruote::Asw
           e['eventId'] <= b &&
           e['eventType'] == 'TimerFired'
         }.collect { |e|
-          @execution['schedules'][e['timerFiredEventAttributes']['timerId']]
+          @execution['schedules'].delete(
+            e['timerFiredEventAttributes']['timerId'])
         }.compact.collect { |s|
           s['msg']
         }

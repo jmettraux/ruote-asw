@@ -179,7 +179,7 @@ module Ruote::Asw
 
       @execution =
         @storage.store.get_execution(@wfid) ||
-        { 'expressions' => {}, 'errors' => {} }
+        { 'expressions' => {}, 'schedules' => {}, 'errors' => {} }
 
       @execution['wfid'] = @wfid
       @execution['runid'] = @runid
@@ -242,6 +242,7 @@ module Ruote::Asw
       super
 
       @activities = []
+      @timers = []
     end
 
     def done(msg)
@@ -283,6 +284,19 @@ module Ruote::Asw
           # TODO: implement round-robin on activity task list for fairness...
         end
 
+        @timers.each do |sch|
+
+          t = (Time.parse(sch['at']) - Time.now).to_i
+          t = 0 if t < 0
+          t = t.to_s
+
+          decisions << {
+            'decisionType' => 'StartTimer',
+            'startTimerDecisionAttributes' => {
+              #'control' => 'xxx',
+              'startToFireTimeout' => t,
+              'timerId' => sch['_id'] } }
+        end
       end
 
       @storage.swf_client.respond_decision_task_completed(
@@ -302,6 +316,13 @@ module Ruote::Asw
       else
         @storage.store.put_execution(wfid, @execution)
       end
+    end
+
+    def put(doc, opts={})
+
+      @timers << doc if doc['type'] == 'schedules'
+
+      super
     end
 
     def put_msg(action, options)
@@ -325,7 +346,23 @@ module Ruote::Asw
 
     def get_msgs
 
-      @storage.store.get_msgs(@wfid)
+      a = @res['previousStartedEventId']
+      b = @res['startedEventId']
+
+      timer_msgs =
+        @res['events'].select { |e|
+          e['eventId'] > a &&
+          e['eventId'] <= b &&
+          e['eventType'] == 'TimerFired'
+        }.collect { |e|
+          @execution['schedules'][e['timerFiredEventAttributes']['timerId']]
+        }.compact.collect { |s|
+          s['msg']
+        }
+
+      timer_msgs.each { |m| m['put_at'] = Ruote.now_to_utc_s }
+
+      @storage.store.get_msgs(@wfid) + timer_msgs
     end
 
     def execution_over?

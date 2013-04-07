@@ -20,6 +20,8 @@ module DashboardHelper
 
   def teardown_dboard
 
+    return unless @dboard
+
     sleep(0.500)
 
     @dboard.shutdown

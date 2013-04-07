@@ -64,10 +64,12 @@ module Ruote::Asw
       @store =
         case bucket_or_store
           when String
+            raise 'Ruote::Asw::S3Store not yet implemented'
             nil # TODO
           when :memory
             MemoryStore.new
           when nil
+            raise 'Ruote::Asw::S3Store not yet implemented'
             nil # TODO
           else
             bucket_or_store

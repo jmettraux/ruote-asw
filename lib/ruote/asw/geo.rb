@@ -61,6 +61,7 @@ module Ruote::Asw
       %w[ us-east-1 va virginia east1 ],
       %w[ us-west-2 or oregon west2 ],
       %w[ us-west-1 ca california cali norcal west1 ],
+      %w[ eu-west-1 ie ireland euro ],
       %w[ ap-southeast-1 singapore sin ],
       %w[ ap-southeast-2 sydney aus australia oz ],
       %w[ ap-northeast-1 tokyo edo japan nippon yamato ],

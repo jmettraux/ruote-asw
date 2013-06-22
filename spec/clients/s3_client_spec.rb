@@ -165,6 +165,12 @@ describe Ruote::Asw::S3Client do
       end
     end
 
+    describe '.exists?(bucket_name)' do
+
+      it 'returns true if the bucket exists (in the account)' do
+      end
+    end
+
     describe '.list_buckets' do
 
       it 'lists the buckets in the account' do
@@ -196,6 +202,28 @@ describe Ruote::Asw::S3Client do
           aki, sak, 'ruote-asw', 'edo', true)
 
         r.should == nil
+      end
+
+      it 'raises if the bucket already exists (same account)' do
+
+        bucket = new_bucket_name
+
+        Ruote::Asw::S3Client.create_bucket(aki, sak, bucket, 'euro')
+
+        lambda {
+
+          Ruote::Asw::S3Client.create_bucket(aki, sak, bucket, 'euro')
+
+        }.should raise_error(ArgumentError)
+      end
+
+      it 'raises if the bucket already exists (other account)' do
+
+        lambda {
+
+          Ruote::Asw::S3Client.create_bucket(aki, sak, 'bucket', 'euro')
+
+        }.should raise_error(ArgumentError)
       end
 
       it 'raises if the region is not a S3 region' do

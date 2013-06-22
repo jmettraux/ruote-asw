@@ -138,17 +138,18 @@ module Ruote::Asw
           [ :poll_for_decision_task, @decision_task_list ]
         end
 
-      r = begin
+      r =
+        begin
 
-        @swf_client.send(
-          meth,
-          'domain' => @swf_domain,
-          'taskList' => { 'name' => task_list },
-          'identity' => worker.identity)
+          @swf_client.send(
+            meth,
+            'domain' => @swf_domain,
+            'taskList' => { 'name' => task_list },
+            'identity' => worker.identity)
 
-      rescue Errno::ETIMEDOUT
-        nil
-      end
+        rescue Errno::ETIMEDOUT
+          nil
+        end
 
       set_task(r)
 

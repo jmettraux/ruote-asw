@@ -36,6 +36,11 @@ module Ruote::Asw
 
     def load_system
 
+      #@system = {
+      #  'configurations' => { 'engine' => {} },
+      #  'variables' => {}
+      #}
+
       @client.get('system.json.zlib')
     end
   end

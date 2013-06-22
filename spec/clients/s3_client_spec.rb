@@ -48,6 +48,18 @@ describe Ruote::Asw::S3Client do
         client.get(fname).should ==
           'Jacques-Antoine-Hippolyte, Comte de Guibert'
       end
+
+      it 'encodes .json files' do
+
+        fname = new_fname + '.json'
+
+        r = client.put(fname, { 'json' => true, 'customer' => 'Turenne' })
+
+        r.should ==
+          nil
+        client.get(fname).should ==
+          { 'json' => true, 'customer' => 'Turenne' }
+      end
     end
 
     describe '#get' do

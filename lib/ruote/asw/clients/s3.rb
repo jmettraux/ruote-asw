@@ -60,6 +60,10 @@ module Ruote::Asw
 
     def put(fname, content)
 
+      split = fname.split('.')
+
+      content = Rufus::Json.encode(content) if split.include?('json')
+
       #Zlib::BEST_COMPRESSION
       #Zlib::BEST_SPEED
       #Zlib::DEFAULT_COMPRESSION
@@ -69,16 +73,21 @@ module Ruote::Asw
       content =
         Zlib::Deflate.deflate(
           content, Zlib::BEST_COMPRESSION
-        ) if fname.end_with?('.zlib')
+        ) if split.last == 'zlib'
 
       request(:put, fname, content)
     end
 
     def get(fname)
 
+      split = fname.split('.')
+
       content = request(:get, fname)
 
-      fname.end_with?('.zlib') ? Zlib::Inflate.inflate(content) : content
+      content = Zlib::Inflate.inflate(content) if split.last == 'zlib'
+      content = Rufus::Json.decode(content) if split.include?('json')
+
+      content
     end
 
     def delete(fname_s)

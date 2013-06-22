@@ -84,6 +84,8 @@ module Ruote::Asw
 
       content = request(:get, fname)
 
+      return nil if content == nil
+
       content = Zlib::Inflate.inflate(content) if split.last == 'zlib'
       content = Rufus::Json.decode(content) if split.include?('json')
 

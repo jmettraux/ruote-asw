@@ -76,6 +76,16 @@ describe Ruote::Asw::S3Client do
 
         client.get('nada.txt').should == nil
       end
+
+      it 'returns nil if there is no file (.zlib)' do
+
+        client.get('nada.zlib').should == nil
+      end
+
+      it 'returns nil if there is no file (.json)' do
+
+        client.get('nada.json').should == nil
+      end
     end
 
     describe '#delete' do

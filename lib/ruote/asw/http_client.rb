@@ -85,6 +85,9 @@ module Ruote::Asw
       #
       # catch anything, log, then re-raise
 
+      p e
+      puts e.backtrace
+
       class << e; attr_accessor :duration; end
       e.duration = t ? Time.now - t : 0
 

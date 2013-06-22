@@ -25,7 +25,22 @@
 
 module Ruote::Asw
 
-  # S3
+  # AWS SWF
+  #
+  # http://docs.aws.amazon.com/general/latest/gr/rande.html
+  #
+  # 2013/06/22
+  #
+  # US East (Northern Virginia) Region     swf.us-east-1.amazonaws.com
+  # US West (Oregon) Region                swf.us-west-2.amazonaws.com
+  # US West (Northern California) Region   swf.us-west-1.amazonaws.com
+  # EU (Ireland) Region                    swf.eu-west-1.amazonaws.com
+  # Asia Pacific (Singapore) Region        swf.ap-southeast-1.amazonaws.com
+  # Asia Pacific (Sydney) Region           swf.ap-southeast-2.amazonaws.com
+  # Asia Pacific (Tokyo) Region            swf.ap-northeast-1.amazonaws.com
+  # South America (Sao Paulo) Region       swf.sa-east-1.amazonaws.com
+
+  # AWS S3
   #
   # http://docs.aws.amazon.com/general/latest/gr/rande.html
   #
@@ -40,37 +55,59 @@ module Ruote::Asw
   # Asia Pacific (Tokyo)        s3-ap-northeast-1.amazonaws.com ap-northeast-1
   # South America (Sao Paulo)   s3-sa-east-1.amazonaws.com sa-east-1
 
-  S3_REGIONS =
+  POINTS =
     [
-      %w[ eu-west-1 eu europe ireland euro ],
-      %w[ us-west-1 oregon ],
-      %w[ us-west-2 california cali norcal ],
-      %w[ ap-southeast-1 singapore ],
-      %w[ ap-southeast-2 sidney australia oz ],
+      %w[ eu-west-1 eu ireland ie ],
+      %w[ us-east-1 va virginia east1 ],
+      %w[ us-west-2 or oregon west2 ],
+      %w[ us-west-1 ca california cali norcal west1 ],
+      %w[ ap-southeast-1 singapore sin ],
+      %w[ ap-southeast-2 sydney aus australia oz ],
       %w[ ap-northeast-1 tokyo edo japan nippon yamato ],
-      %w[ sa-east-1 saopaulo brazil ]
+      %w[ sa-east-1 saopaulo brazil ],
     ].inject({}) { |h, a| h[a.first] = a; h }
 
-  # Given a [S3] region nickname (or full name), returns the regiion fullname
+  def self.lookup_point(name)
+
+    n = name.to_s.downcase
+
+    return n if n.match(/^[a-z]{2}-[a-z]+-\d+$/)
+      # accept endpoints specified directly
+
+    (POINTS.find { |k, v| v.include?(n) } || []).first
+  end
+
+  # Given a [S3] region nickname (or full name), returns the region fullname
   # (endpoint host).
   #
   def self.lookup_s3_region(name)
 
-    n = name.to_s.downcase
-
-    region =
-      if n.match(/^[a-z]{2}-[a-z]+-\d+$/)
-        # accept 'new' endpoints specified directly
-        n
-      else
-        (S3_REGIONS.find { |k, v| v.include?(n) } || []).first
-      end
+    region = lookup_point(name)
 
     raise ArgumentError.new(
       "unknown S3 region: #{name.inspect}"
     ) unless region
 
     region
+  end
+
+  # Given an SWF endpoint nickname (or full name), return the endpoint full
+  # host name.
+  #
+  def self.lookup_swf_endpoint(name)
+
+    name ||= 'east1'
+
+    return name.chomp('/') if name.match(/^https:\/\/swf\./)
+      # if the endpoint if fed as is, let's return it
+
+    point = lookup_point(name)
+
+    raise ArgumentError.new(
+      "unknown SWF endpoint: #{name.inspect}"
+    ) unless point
+
+    "https://swf.#{point}.amazonaws.com"
   end
 end
 

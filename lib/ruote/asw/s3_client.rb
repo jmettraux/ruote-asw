@@ -115,29 +115,11 @@ module Ruote::Asw
     # bucket listing, creation/deletion
     #++
 
-    REGIONS =
-      [
-        %w[ eu-west-1 eu europe ireland euro ],
-        %w[ us-west-1 oregon ],
-        %w[ us-west-2 california cali norcal ],
-        %w[ ap-southeast-1 singapore ],
-        %w[ ap-southeast-2 sidney australia oz ],
-        %w[ ap-northeast-1 tokyo edo japan nippon yamato ],
-        %w[ sa-east-1 saopaulo brazil ]
-      ].inject({}) { |h, a| h[a.first] = a; h }
-
-
     def self.create_bucket(
       access_key_id, secret_access_key, bucket, region, quiet=false
     )
 
-      region = region.to_s.downcase
-      reg, _ = REGIONS.find { |k, v| v.include?(region) }
-      reg = region if region.match(/^[a-z]{2}-[a-z]+-\d+$/)
-
-      raise ArgumentError.new(
-        "unknown S3 region: #{region.inspect}"
-      ) unless reg
+      reg = Ruote::Asw.lookup_s3_region(region)
 
       doc = []
       doc << '<?xml version="1.0" encoding="UTF-8"?>'

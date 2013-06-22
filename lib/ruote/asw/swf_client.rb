@@ -30,6 +30,15 @@ module Ruote::Asw
 
   class SwfClient
 
+    # US East (Northern Virginia) Region  swf.us-east-1.amazonaws.com HTTPS
+    # US West (Oregon) Region swf.us-west-2.amazonaws.com HTTPS
+    # US West (Northern California) Region    swf.us-west-1.amazonaws.com HTTPS
+    # EU (Ireland) Region swf.eu-west-1.amazonaws.com HTTPS
+    # Asia Pacific (Singapore) Region swf.ap-southeast-1.amazonaws.com    HTTPS
+    # Asia Pacific (Sydney) Region    swf.ap-southeast-2.amazonaws.com    HTTPS
+    # Asia Pacific (Tokyo) Region swf.ap-northeast-1.amazonaws.com    HTTPS
+    # South America (Sao Paulo) Region    swf.sa-east-1.amazonaws.com HTTPS
+
     DEFAULT_ENDPOINT = 'https://swf.us-east-1.amazonaws.com'
 
     attr_reader :owner

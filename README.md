@@ -23,6 +23,12 @@ Set debug level to 1 for the http client (ht):
 
     $ RUOTE_ASW_DLEVEL=ht1 bundle exec rspec
 
+Set debug level to 1 for the http client and 2 for the SWF client (sw)
+
+    $ RUOTE_ASW_DLEVEL=ht1,sw2 bundle exec rspec
+
+"ht" spans from 0 to 2, "sw" spans from 0 to 4.
+
 
 ## license
 

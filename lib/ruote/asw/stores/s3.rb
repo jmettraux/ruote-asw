@@ -22,12 +22,20 @@
 # Made in Japan.
 #++
 
-require 'ruote/asw/s3_client'
+require 'ruote/asw/clients/s3'
 
 
 module Ruote::Asw
 
   class S3Store
+
+    def initialize(storage, aki, sak, bucket)
+
+      @client = Ruote::Asw::S3Client.new(storage, aki, sak, bucket)
+    end
+
+    def load_system
+    end
   end
 end
 

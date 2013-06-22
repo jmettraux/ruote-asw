@@ -22,8 +22,8 @@
 # Made in Japan.
 #++
 
-require 'ruote/asw/swf_client'
 require 'ruote/asw/tasks'
+require 'ruote/asw/clients/swf'
 
 
 module Ruote::Asw
@@ -63,14 +63,14 @@ module Ruote::Asw
 
       @store =
         case bucket_or_store
-          when String
-            raise 'Ruote::Asw::S3Store not yet implemented'
-            nil # TODO
+          when :s3, String, nil
+            S3Store.new(
+              self,
+              aws_access_key_id,
+              aws_secret_access_key,
+              (bucket_or_store || domain).to_s)
           when :memory
             MemoryStore.new
-          when nil
-            raise 'Ruote::Asw::S3Store not yet implemented'
-            nil # TODO
           else
             bucket_or_store
         end

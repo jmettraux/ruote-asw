@@ -23,7 +23,7 @@
 #++
 
 require 'ruote/util/misc'
-require 'ruote/asw/http_client'
+require 'ruote/asw/clients/http'
 
 
 module Ruote::Asw

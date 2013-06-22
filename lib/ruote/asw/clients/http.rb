@@ -29,7 +29,7 @@ require 'net/http/persistent'
 
 require 'ruote/asw/version'
 require 'ruote/asw/debug'
-require 'ruote/asw/geo'
+require 'ruote/asw/clients/geo'
 
 
 module Ruote::Asw

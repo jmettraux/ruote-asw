@@ -23,6 +23,7 @@
 #++
 
 require 'cgi'
+require 'zlib'
 
 require 'ruote/asw/clients/http'
 
@@ -59,12 +60,25 @@ module Ruote::Asw
 
     def put(fname, content)
 
+      #Zlib::BEST_COMPRESSION
+      #Zlib::BEST_SPEED
+      #Zlib::DEFAULT_COMPRESSION
+        #
+        # go for best_compression for now
+
+      content =
+        Zlib::Deflate.deflate(
+          content, Zlib::BEST_COMPRESSION
+        ) if fname.end_with?('.zlib')
+
       request(:put, fname, content)
     end
 
     def get(fname)
 
-      request(:get, fname)
+      content = request(:get, fname)
+
+      fname.end_with?('.zlib') ? Zlib::Inflate.inflate(content) : content
     end
 
     def delete(fname_s)

@@ -36,6 +36,18 @@ describe Ruote::Asw::S3Client do
         r.should == nil
         client.get(fname).should == 'test 1 2 3'
       end
+
+      it 'deflates and uploads .zlib files' do
+
+        fname = new_fname + '.zlib'
+
+        r = client.put(fname, 'Jacques-Antoine-Hippolyte, Comte de Guibert')
+
+        r.should ==
+          nil
+        client.get(fname).should ==
+          'Jacques-Antoine-Hippolyte, Comte de Guibert'
+      end
     end
 
     describe '#get' do

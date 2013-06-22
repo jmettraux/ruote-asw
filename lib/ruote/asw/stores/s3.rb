@@ -35,6 +35,8 @@ module Ruote::Asw
     end
 
     def load_system
+
+      @client.get('system.json.zlib')
     end
   end
 end

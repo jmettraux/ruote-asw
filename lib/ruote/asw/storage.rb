@@ -46,6 +46,7 @@ module Ruote::Asw
     def initialize(
       aws_access_key_id,
       aws_secret_access_key,
+      region,
       domain,
       bucket_or_store,
       conf={}
@@ -57,7 +58,11 @@ module Ruote::Asw
       end
 
       @swf_client =
-        SwfClient.new(self, aws_access_key_id, aws_secret_access_key)
+        SwfClient.new(
+          self,
+          aws_access_key_id,
+          aws_secret_access_key,
+          region)
       @swf_domain =
         domain
 
@@ -68,6 +73,7 @@ module Ruote::Asw
               self,
               aws_access_key_id,
               aws_secret_access_key,
+              region,
               (bucket_or_store || domain).to_s)
           when :memory
             MemoryStore.new

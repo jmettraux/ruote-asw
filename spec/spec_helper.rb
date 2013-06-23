@@ -16,6 +16,7 @@ Dir[File.expand_path('../support/*.rb', __FILE__)].each { |pa| require(pa) }
 #
 #Dir[File.expand_path('../**/sh_*.rb', __FILE__)].each { |pa| require(pa) }
 
+RA = Ruote::Asw
 
 #RSpec.configure do |c|
 #

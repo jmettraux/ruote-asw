@@ -10,9 +10,6 @@ require 'ruote-asw'
 
 def new_storage(opts)
 
-  aki = ENV['AWS_ACCESS_KEY_ID']
-  sak = ENV['AWS_SECRET_ACCESS_KEY']
-
   #opts['wait_logger_timeout'] = 180
     # SWF can be quite demanding
   opts['swf_task_list'] ||= "ruote_asw_test_task_list_#{Time.now.to_f}_#{rand}"
@@ -22,14 +19,14 @@ def new_storage(opts)
     # use in-memory store
 
     Ruote::Asw::Storage.new(
-      aki, sak, 'ruote-asw-test', Ruote::Asw::MemoryStore.new, opts)
+      RA.aki, RA.sak, RA.region, RA.test_domain, Ruote::Asw::MemoryStore.new, opts)
 
   else
     #
     # will use a S3Store with the 'ruote_asw_test' bucket
 
     Ruote::Asw::Storage.new(
-      aki, sak, 'ruote-asw-test', opts)
+      RA.aki, RA.sak, RA.region, RA.test_domain, opts)
   end
 end
 

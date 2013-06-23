@@ -32,14 +32,20 @@ module Ruote::Asw
 
     attr_reader :owner
 
-    def initialize(owner, aws_access_key_id, aws_secret_access_key, opts={})
+    def initialize(
+      owner,
+      aws_access_key_id,
+      aws_secret_access_key,
+      region,
+      opts={}
+    )
 
       @owner = owner
       @aki = aws_access_key_id
       @sak = aws_secret_access_key
       @opts = opts
 
-      endpoint = Ruote::Asw.lookup_swf_endpoint(opts['endpoint'])
+      endpoint = Ruote::Asw.lookup_swf_endpoint(region)
       @uri = URI.parse(endpoint + '/')
       @host = endpoint.split('/').last
 

@@ -10,8 +10,8 @@ require 'spec_helper'
 
 describe Ruote::Asw::S3Client do
 
-  let(:aki) { ENV['AWS_ACCESS_KEY_ID'] }
-  let(:sak) { ENV['AWS_SECRET_ACCESS_KEY'] }
+  let(:aki) { RA.aki }
+  let(:sak) { RA.sak }
 
   context 'routine operation' do
 

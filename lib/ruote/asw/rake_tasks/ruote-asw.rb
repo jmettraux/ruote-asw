@@ -42,8 +42,9 @@ namespace :asw do
     ) unless args[:domain_name]
 
     storage = Ruote::Asw::Storage.new(
-      ENV['AWS_ACCESS_KEY_ID'],
-      ENV['AWS_SECRET_ACCESS_KEY'],
+      RA.aki,
+      RA.sak,
+      RA.region,
       args[:domain_name],
       :memory,
       :prepare_immediately => true)

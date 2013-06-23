@@ -29,19 +29,33 @@ module Ruote::Asw
 
   class S3Store
 
-    def initialize(storage, aki, sak, bucket)
+    def initialize(storage, aki, sak, region, bucket)
+
+      Ruote::Asw::S3Client.create_bucket(aki, sak, bucket, region, true)
+        #
+        # 'quiet' is set to true, will not complain if the
+        # bucket already exists...
 
       @client = Ruote::Asw::S3Client.new(storage, aki, sak, bucket)
     end
 
     def load_system
 
-      #@system = {
-      #  'configurations' => { 'engine' => {} },
-      #  'variables' => {}
-      #}
+      @client.get('system.json.zlib') ||
+      {
+        'configurations' => { 'engine' => {} },
+        'variables' => {}
+      }
+    end
 
-      @client.get('system.json.zlib')
+    def put(doc, opts)
+
+      sys = load_system
+      sys[doc['type']][doc['_id']] = doc
+
+      @client.put('system.json.zlib', sys)
+
+      doc
     end
   end
 end

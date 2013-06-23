@@ -30,6 +30,13 @@ Set debug level to 1 for the http client and 2 for the SWF client (sw)
 "ht" spans from 0 to 2, "sw" spans from 0 to 4.
 
 
+## troubleshooting
+
+### "RequestExpiredException"
+
+Your computer's clock is too off. Resyncrhonize it (sudo service ntp restart).
+
+
 ## license
 
 MIT, see LICENSE.txt

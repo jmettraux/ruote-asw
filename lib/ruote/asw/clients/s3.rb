@@ -112,9 +112,15 @@ module Ruote::Asw
       end
     end
 
-    def list(prefix=nil)
+    LIST_MAX_KEYS = 1000
 
-      path = prefix ? "?prefix=#{CGI.escape(prefix)}" : ''
+    def list(prefix=nil, marker=nil, max_keys=LIST_MAX_KEYS)
+
+      # see http://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketGET.html
+
+      path = "?max-keys=#{max_keys}"
+      path = "#{path}&prefix=#{CGI.escape(prefix)}" if prefix
+      path = "#{path}&marker=#{CGI.escape(marker)}" if marker
 
       r = request(:get, path)
 
@@ -122,7 +128,13 @@ module Ruote::Asw
         "bucket '#{@bucket}' doesn't seem to exist"
       ) unless r
 
-      r.scan(/<Key>([^<]+)<\/Key>/).collect(&:first)
+      fnames = r.scan(/<Key>([^<]+)<\/Key>/).collect(&:first)
+
+      if fnames.size >= max_keys && r.index('<IsTruncated>true</IsTruncated>')
+        fnames + list(prefix, fnames[-1], max_keys)
+      else
+        fnames
+      end
     end
 
     def purge
@@ -163,9 +175,13 @@ module Ruote::Asw
       end
     end
 
-    def self.delete_bucket(access_key_id, secret_access_key, bucket)
+    def self.delete_bucket(
+      access_key_id, secret_access_key, bucket, force=false
+    )
 
       client = self.new(nil, access_key_id, secret_access_key, bucket)
+
+      client.purge if force
       client.send(:request, :delete, '')
     end
 

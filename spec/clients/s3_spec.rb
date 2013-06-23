@@ -10,6 +10,11 @@ require 'spec_helper'
 
 describe Ruote::Asw::S3Client do
 
+  def new_bucket_name
+
+    "ruote-aws-s3-spec-#{Time.now.to_i}#{$$}#{Thread.object_id}"
+  end
+
   let(:aki) { RA.aki }
   let(:sak) { RA.sak }
 
@@ -124,6 +129,25 @@ describe Ruote::Asw::S3Client do
 
         l.should == %w[ alfred.txt alice.txt ]
       end
+
+      it 'lists all (multi requests)' do
+
+        bucket = new_bucket_name
+
+        Ruote::Asw::S3Client.create_bucket(aki, sak, bucket, 'ireland')
+
+        client = Ruote::Asw::S3Client.new(nil, aki, sak, bucket)
+
+        20.times { |i| client.put( "file#{i}.txt", 'nada') }
+
+        fnames = client.list(nil, nil, 10)
+
+        fnames.size.should == 20
+        fnames.uniq.size.should == 20
+
+        client.purge
+        Ruote::Asw::S3Client.delete_bucket(aki, sak, bucket)
+      end
     end
 
     describe '#purge' do
@@ -152,11 +176,6 @@ describe Ruote::Asw::S3Client do
 
   context 'bucket creation/deletion' do
 
-    def new_bucket_name
-
-      "ruote-aws-s3-spec-#{Time.now.to_i}#{$$}#{Thread.object_id}"
-    end
-
     after(:each) do
       #
       # delete all the transient test buckets
@@ -165,7 +184,7 @@ describe Ruote::Asw::S3Client do
 
       l.each do |n|
         next unless n.match(/^ruote-aws-s3-spec-\d+$/)
-        Ruote::Asw::S3Client.delete_bucket(aki, sak, n)
+        Ruote::Asw::S3Client.delete_bucket(aki, sak, n, true)
       end
     end
 

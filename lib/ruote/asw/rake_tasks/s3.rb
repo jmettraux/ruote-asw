@@ -40,6 +40,20 @@ namespace :s3 do
   end
 
   desc %{
+    list the content of a bucket
+  }
+  task :list_bucket, [ :name ] => :req do |t, args|
+
+    pp Ruote::Asw::S3Client.new(
+      nil, ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'], args[:name]
+    ).list
+  end
+  desc %{
+    alias for s3:list_bucket
+  }
+  task :ls, [ :name ] => :list_bucket
+
+  desc %{
     creates a bucket given a name and an AWS region
   }
   task :create_bucket, [ :name, :region ] => :req do |t, args|

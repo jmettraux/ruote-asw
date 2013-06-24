@@ -112,7 +112,9 @@ module Ruote::Asw
 
     def purge!
 
-      # TODO
+      @msg.clear
+      @executions.clear
+      @system.clear
     end
   end
 end

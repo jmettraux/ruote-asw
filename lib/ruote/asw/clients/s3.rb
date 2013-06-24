@@ -137,15 +137,9 @@ module Ruote::Asw
       end
     end
 
-    def purge
+    def purge(prefix=nil)
 
-      l = list
-
-      return if l.empty?
-
-      delete(l)
-
-      purge if l.size >= 1000
+      list(prefix).each_slice(LIST_MAX_KEYS) { |s| delete(s) }
     end
 
     #--

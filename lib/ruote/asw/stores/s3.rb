@@ -57,6 +57,16 @@ module Ruote::Asw
 
       doc
     end
+
+    def expression_wfids(opts)
+
+      @client.list('wf-')
+    end
+
+    def purge!
+
+      @client.purge
+    end
   end
 end
 

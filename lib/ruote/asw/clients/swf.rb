@@ -101,14 +101,24 @@ module Ruote::Asw
 
     def purge!(domain)
 
-      open_executions(domain).collect do |ei|
+      open_executions(domain).collect { |ei|
 
-        terminate_workflow_execution(
-          'domain' => domain,
-          'workflowId' => ei['execution']['workflowId'])
+        begin
 
-        ei['execution']
-      end
+          terminate_workflow_execution(
+            'domain' => domain,
+            'workflowId' => ei['execution']['workflowId'])
+
+          ei['execution']
+
+        rescue => e
+
+          raise e unless e.message.match(/^UnknownResourceFault: /)
+
+          nil
+        end
+
+      }.compact
     end
 
     protected
@@ -208,8 +218,9 @@ module Ruote::Asw
       def initialize(res)
 
         @res = res
+        j = res.from_json
 
-        super(res.from_json['__type'].split('#').last)
+        super("#{j['__type'].split('#').last}: #{j['message']}")
       end
     end
   end

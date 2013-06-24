@@ -22,19 +22,22 @@
 # Made in Japan.
 #++
 
+require 'ruote/asw/stores/store'
+
 
 module Ruote::Asw
 
-  class MemoryStore
+  class MemoryStore < Store
 
     def initialize
+
+      super()
 
       @system = {
         'configurations' => { 'engine' => {} },
         'variables' => {}
       }
       @executions = {}
-      @msgs = []
     end
 
     def load_system
@@ -45,45 +48,6 @@ module Ruote::Asw
     def put(doc, opts)
 
       @system[doc['type']][doc['_id']] = doc
-    end
-
-    def put_msg(msg)
-
-      @msgs << msg
-    end
-
-    def get_msgs(wfid)
-
-      @msgs.select { |m| m['wfid'] == wfid && m['action'] != 'dispatch' }
-    end
-
-    def get_activity_msgs(wfid)
-
-      @msgs.select { |m| m['wfid'] == wfid && m['action'] == 'dispatch' }
-    end
-
-    def del_msgs(msgs)
-
-      # let's not worry with mutexes for this memstore implementation
-
-      msgs.each { |m| @msgs.delete(m) }
-    end
-
-    def get_many(type, key, opts)
-
-      # TODO: :skip, :limit, :count, :descending
-
-      docs =
-        @executions.values.collect { |e|
-          (e[type] || {}).values
-        }.flatten(1)
-
-      if key
-        keys = Array(key).map { |k| k.is_a?(String) ? "!#{k}" : k }
-        docs.select { |doc| Ruote::StorageBase.key_match?(keys, doc) }
-      else
-        docs
-      end
     end
 
     def expression_wfids(opts)
@@ -112,9 +76,16 @@ module Ruote::Asw
 
     def purge!
 
-      @msg.clear
+      super
       @executions.clear
       @system.clear
+    end
+
+    protected
+
+    def executions
+
+      @executions
     end
   end
 end

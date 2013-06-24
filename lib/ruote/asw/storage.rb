@@ -70,7 +70,6 @@ module Ruote::Asw
         case bucket_or_store
           when :s3, String, nil
             S3Store.new(
-              self,
               aws_access_key_id,
               aws_secret_access_key,
               region,
@@ -164,7 +163,6 @@ module Ruote::Asw
 
     def purge!
 
-      @store.expression_wfids(nil).each { |wfid| terminate(wfid) }
       @swf_client.purge!(@swf_domain)
       @store.purge!
     end

@@ -22,76 +22,59 @@
 # Made in Japan.
 #++
 
-require 'ruote/asw/stores/store'
-require 'ruote/asw/clients/s3'
-
 
 module Ruote::Asw
 
-  class S3Store < Store
+  #
+  # Parent class for S3Store and MemoryStore.
+  #
+  class Store
 
-    def initialize(aki, sak, region, bucket)
+    def initialize
 
-      super()
-
-      Ruote::Asw::S3Client.create_bucket(aki, sak, bucket, region, true)
-        #
-        # 'quiet' is set to true, will not complain if the
-        # bucket already exists...
-
-      @client = Ruote::Asw::S3Client.new(self, aki, sak, bucket)
+      @msgs = []
     end
 
-    def load_system
+    def put_msg(msg)
 
-      @client.get('system.json.zlib') ||
-      {
-        'configurations' => { 'engine' => {} },
-        'variables' => {}
-      }
+      @msgs << msg
     end
 
-    def put(doc, opts)
+    def get_msgs(wfid)
 
-      sys = load_system
-      sys[doc['type']][doc['_id']] = doc
-
-      @client.put('system.json.zlib', sys)
-
-      doc
+      @msgs.select { |m| m['wfid'] == wfid && m['action'] != 'dispatch' }
     end
 
-    def get_execution(wfid)
+    def get_activity_msgs(wfid)
 
-      @client.get("wf-#{wfid}.json.zlib")
+      @msgs.select { |m| m['wfid'] == wfid && m['action'] == 'dispatch' }
     end
 
-    def put_execution(wfid, execution)
+    def del_msgs(msgs)
 
-      @client.put("wf-#{wfid}.json.zlib", execution)
+      # let's not worry with mutexes for this memstore implementation
 
-      nil
+      msgs.each { |m| @msgs.delete(m) }
     end
 
-    def expression_wfids(opts)
+    def get_many(type, key, opts)
 
-      @client.list('wf-').collect { |fn| fn.split('.').first[3..-1] }
+      # TODO: :skip, :limit, :count, :descending
+
+      docs =
+        executions.values.collect { |e| (e[type] || {}).values }.flatten(1)
+
+      if key
+        keys = Array(key).map { |k| k.is_a?(String) ? "!#{k}" : k }
+        docs.select { |doc| Ruote::StorageBase.key_match?(keys, doc) }
+      else
+        docs
+      end
     end
 
     def purge!
 
-      @client.purge
-    end
-
-    protected
-
-    # Costly...
-    #
-    def executions
-
-      expression_wfids(nil).inject({}) { |h, wfid|
-        h[wfid] = get_execution(wfid)
-      }
+      @msgs.clear
     end
   end
 end

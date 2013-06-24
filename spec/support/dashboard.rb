@@ -29,13 +29,13 @@ module DashboardHelper
 
   rescue => e
 
-    #return if e.message == 'UnknownResourceFault'
+    #return if e.message.match(/^UnknownResourceFault: /)
 
     puts '~' * 80
     puts '~ teardown issue ~'
     p e
     p e.message
-    puts caller
+    puts e.backtrace
   end
 end
 

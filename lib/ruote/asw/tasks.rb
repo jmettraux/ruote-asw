@@ -418,7 +418,7 @@ module Ruote::Asw
 
         rescue Ruote::Asw::SwfClient::Error => e
 
-          raise e unless e.message == 'UnknownResourceFault'
+          raise e unless e.message.match(/^UnknownResourceFault: /)
             #
             # it's totally OK if that message makes it after the msg
             # above got handled and breaks because the execution is

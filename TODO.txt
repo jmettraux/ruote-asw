@@ -1,0 +1,40 @@
+
+## todos
+
+[o] debug output at the http client level
+    RUOTE_ASW_DEBUG=http-3,s3-2,swf-5 ???
+[o] find a way to store runId in the... { 'expressions' => [], 'runId' => xxx }
+[o] add to ohloh
+[o] activity worker: reply immediately?, then signal?
+    have a timer...
+    avoid heartbeat and co...
+
+[ ] nextPageToken and fetch_next... (by default, do not fetch)
+[ ] throttling...
+[ ] implement late? in decision_done
+
+
+[ ] implement retry in case of Errno::ETIMEDOUT
+    RetryTactic? RetryTechnique?
+    think of fetch_next...
+
+[o] PollForXxxxTask: indicate when a task was actually found (at dlevel 1)
+[ ] RespondForXxxxTask: same?
+
+[x] should "dispatched" be given back when "respondActivityTaskCompleted"?
+    keep it in the activity worker for now
+
+[ ] add spec to make sure that schedule are removed when triggered
+
+[ ] Dashboard#terminate(wfid) ? (runId) ?
+
+[ ] execution expired issue is PollForActivityTask
+
+[ ] remove @owner for all clients?
+
+
+## ideas
+
+[ ] "-archive" bucket?
+    create it preemptively when creating operation bucket
+

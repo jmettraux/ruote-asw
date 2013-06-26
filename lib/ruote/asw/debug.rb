@@ -58,15 +58,19 @@ module Ruote::Asw
       return unless @@dlevel['ht'] > 1
 
       echo(res.body) if res && res.code != 200
+
+      return unless @@dlevel['ht'] > 2
+
+      puts caller[1..-1].select { |l| ! l.match(/\/gems\/rspec/) }
     end
 
     # Log SWF requests (and responses).
     #
     def self.log_swf(client, action, original_data, data, headers, res)
 
-      jres = res && res.from_json
-
       return unless @@dlevel['sw'] > 0
+
+      jres = res && res.from_json
 
       id = request_id(headers)
 

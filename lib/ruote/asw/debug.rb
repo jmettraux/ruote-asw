@@ -48,7 +48,7 @@ module Ruote::Asw
 
       s = "#{prefix} #{meth.upcase} #{uri.to_s}"
       if res
-        s += " #{res.code} #{res.duration}s"
+        s += " #{res.code} #{res.body.length.to_f / 1024}K #{res.duration}s"
       elsif err
         s += " err #{err.class}: #{err.message} #{err.duration}s"
       end

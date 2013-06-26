@@ -57,21 +57,6 @@ module Ruote::Asw
       msgs.each { |m| @msgs.delete(m) }
     end
 
-    def get_many(type, key, opts)
-
-      # TODO: :skip, :limit, :count, :descending
-
-      docs =
-        executions.values.collect { |e| (e[type] || {}).values }.flatten(1)
-
-      if key
-        keys = Array(key).map { |k| k.is_a?(String) ? "!#{k}" : k }
-        docs.select { |doc| Ruote::StorageBase.key_match?(keys, doc) }
-      else
-        docs
-      end
-    end
-
     def purge!
 
       @msgs.clear

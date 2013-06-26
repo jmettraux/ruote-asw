@@ -125,7 +125,11 @@ module Ruote::Asw
       signal(msg)
     end
 
-    def get_many(type, key=nil, opts={})
+    # Caches the OffTask in the opts...
+    #
+    def get_many(type, key, opts)
+
+      opts[:task] ||= self #if task.is_a?(OffTask)
 
       @storage.store.get_many(type, key, opts)
     end

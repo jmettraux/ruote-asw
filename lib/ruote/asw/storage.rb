@@ -117,7 +117,6 @@ module Ruote::Asw
       done
       expression_wfids
       get_schedules
-      get_many
       get
       put
       put_msg
@@ -128,6 +127,13 @@ module Ruote::Asw
       class_eval(%{
         def #{m}(*args); task.#{m}(*args); end
       }, __FILE__, __LINE__)
+    end
+
+    # Leverage the [Off]Task cached in the opts...
+    #
+    def get_many(type, key=nil, opts={})
+
+      (opts[:task] || task).get_many(type, key, opts)
     end
 
     def get_msgs

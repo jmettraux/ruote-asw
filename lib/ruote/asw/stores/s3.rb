@@ -83,15 +83,36 @@ module Ruote::Asw
       @client.purge
     end
 
-    protected
+    def get_many(type, key, opts)
 
-    # Costly...
-    #
-    def executions
+      # TODO: :skip, :limit, :count, :descending
 
-      expression_wfids(nil).inject({}) { |h, wfid|
-        h[wfid] = get_execution(wfid)
-      }
+      opts[:execution_cache] ||= {}
+
+      docs = []
+      ewfids = nil
+
+      wfids =
+        if key
+          key.collect { |i|
+            if i.is_a?(Regexp)
+              r = /^#{i.to_s[8..-7]}\b/
+              (ewifds ||= expression_wfids(nil)).select { |id| id.match(r) }
+            else
+              i
+            end
+          }.flatten
+        else
+          expression_wfids(nil)
+        end.uniq
+
+      wfids.each do |wfid|
+
+        exe = (opts[:execution_cache][wfid] ||= get_execution(wfid))
+        docs.concat((exe[type] || {}).values)
+      end
+
+      docs
     end
   end
 end

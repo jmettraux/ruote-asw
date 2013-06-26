@@ -99,7 +99,7 @@ module Ruote::Asw
 
       else
 
-        jres['executionInfos'].each do |ei|
+        (jres['executionInfos'] || []).each do |ei|
           echo("#{prefix}   #{exe_to_s(ei)}")
         end if action == 'ListOpenWorkflowExecutions'
       end

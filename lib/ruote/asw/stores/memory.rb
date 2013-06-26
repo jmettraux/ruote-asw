@@ -81,11 +81,19 @@ module Ruote::Asw
       @system.clear
     end
 
-    protected
+    def get_many(type, key, opts)
 
-    def executions
+      # TODO: :skip, :limit, :count, :descending
 
-      @executions
+      docs =
+        @executions.values.collect { |e| (e[type] || {}).values }.flatten(1)
+
+      if key
+        keys = Array(key).map { |k| k.is_a?(String) ? "!#{k}" : k }
+        docs.select { |doc| Ruote::StorageBase.key_match?(keys, doc) }
+      else
+        docs
+      end
     end
   end
 end

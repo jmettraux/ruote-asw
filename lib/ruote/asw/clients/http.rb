@@ -37,11 +37,13 @@ module Ruote::Asw
   class HttpClient
 
     attr_reader :name
+    attr_reader :last_request
 
     def initialize(name)
 
       @name = name
       @http = Net::HTTP::Persistent.new(name)
+      @last_request = nil
     end
 
     def read_timeout=(seconds)
@@ -98,6 +100,13 @@ module Ruote::Asw
 
     def log(meth, uri, headers, body, res=nil)
 
+      @last_request =
+        { :meth => meth,
+          :uri => uri,
+          :headers => headers,
+          :body => body,
+          :res => res.respond_to?(:to_h) ? res.to_h : res }
+
       Debug.log_http(self, meth, uri, headers, body, res)
     end
 
@@ -119,7 +128,10 @@ module Ruote::Asw
 
       def headers
 
-        h = {}; @res.each_header { |k, v| h[k] = v }; h
+        @headers ||=
+          begin
+            h = {}; @res.each_header { |k, v| h[k] = v }; h
+          end
       end
 
       def body
@@ -142,6 +154,18 @@ module Ruote::Asw
         message = body.match(/<Message>([^<]+)<\/Message>/)[1]
 
         "#{code}: #{message}"
+      end
+
+      def to_h
+
+        {
+          :code => code,
+          :headers => headers,
+          :start => start,
+          :duration => duration,
+          :body => body,
+          :error => !! (body || '').match(/<Error>/)
+        }
       end
     end
   end

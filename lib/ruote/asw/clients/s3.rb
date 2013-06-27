@@ -58,6 +58,11 @@ module Ruote::Asw
       self.class.create_bucket(@aki, @sak, bucket, region, true) if region
     end
 
+    def last_request
+
+      @http.last_request
+    end
+
     def put(fname, content)
 
       split = fname.split('.')

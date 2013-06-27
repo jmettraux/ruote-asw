@@ -172,6 +172,20 @@ describe Ruote::Asw::S3Client do
         )
       end
     end
+
+    describe '#last_request' do
+
+      it 'returns details about the last HTTP request' do
+
+        client.get('nada.txt')
+
+        lr = client.last_request
+
+        lr[:meth].should == :get
+        lr[:uri].to_s.should == 'https://ruote-asw.s3.amazonaws.com/nada.txt'
+        lr[:res][:code].should == 404
+      end
+    end
   end
 
   context 'bucket creation/deletion' do

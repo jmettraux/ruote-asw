@@ -148,7 +148,7 @@ module Ruote::Asw
 
         # for now only deals with S3 (XML) errors
 
-        return body unless body.match(/<Error>/)
+        return body unless body.index('<Error>')
 
         code = body.match(/<Code>([^<]+)<\/Code>/)[1]
         message = body.match(/<Message>([^<]+)<\/Message>/)[1]
@@ -164,7 +164,7 @@ module Ruote::Asw
           :start => start,
           :duration => duration,
           :body => body,
-          :error => !! (body || '').match(/<Error>/)
+          :error => !! (body || '').index('<Error>')
         }
       end
     end

@@ -81,15 +81,19 @@ module Ruote::Asw
         ) if split.last == 'zlib'
 
       request(:put, fname, content)
+
+      nil
     end
 
     def get(fname)
 
       split = fname.split('.')
 
-      content = request(:get, fname)
+      res = request(:get, fname)
 
-      return nil if content == nil
+      return nil if res.code == 404
+
+      content = res.body
 
       content = Zlib::Inflate.inflate(content) if split.last == 'zlib'
       content = Rufus::Json.decode(content) if split.include?('json')
@@ -115,15 +119,17 @@ module Ruote::Asw
 
         request(:delete, fname_s)
       end
+
+      nil
     end
 
     LIST_MAX_KEYS = 1000
 
-    def list(prefix=nil, marker=nil, max_keys=LIST_MAX_KEYS)
+    def list(prefix=nil, marker=nil, max=LIST_MAX_KEYS)
 
       # see http://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketGET.html
 
-      path = "?max-keys=#{max_keys}"
+      path = "?max-keys=#{max}"
       path = "#{path}&prefix=#{CGI.escape(prefix)}" if prefix
       path = "#{path}&marker=#{CGI.escape(marker)}" if marker
 
@@ -131,12 +137,12 @@ module Ruote::Asw
 
       raise ArgumentError.new(
         "bucket '#{@bucket}' doesn't seem to exist"
-      ) unless r
+      ) if r.code == 404
 
-      fnames = r.scan(/<Key>([^<]+)<\/Key>/).collect(&:first)
+      fnames = r.body.scan(/<Key>([^<]+)<\/Key>/).collect(&:first)
 
-      if fnames.size >= max_keys && r.index('<IsTruncated>true</IsTruncated>')
-        fnames + list(prefix, fnames[-1], max_keys)
+      if fnames.size >= max && r.body.index('<IsTruncated>true</IsTruncated>')
+        fnames + list(prefix, fnames[-1], max)
       else
         fnames
       end
@@ -159,7 +165,8 @@ module Ruote::Asw
 
       doc = []
       doc << '<?xml version="1.0" encoding="UTF-8"?>'
-      doc << '<CreateBucketConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">'
+      doc << '<CreateBucketConfiguration'
+      doc << ' xmlns="http://s3.amazonaws.com/doc/2006-03-01/">'
       doc << "<LocationConstraint>#{reg}</LocationConstraint>"
       doc << '</CreateBucketConfiguration>'
       doc = doc.join("\n")
@@ -168,6 +175,7 @@ module Ruote::Asw
 
       begin
         client.send(:request, :put, bucket, doc)
+        nil
       rescue ArgumentError => ae
         raise ae unless quiet && ae.message.match(/^BucketAlreadyOwnedByYou:/)
         nil
@@ -189,7 +197,7 @@ module Ruote::Asw
       client = self.new(nil, access_key_id, secret_access_key, nil)
       r = client.send(:request, :get, '')
 
-      r.scan(/<Name>([^<]+)<\/Name>/).collect(&:first)
+      r.body.scan(/<Name>([^<]+)<\/Name>/).collect(&:first)
     end
 
     protected
@@ -213,20 +221,15 @@ module Ruote::Asw
         @endpoint =
           r.body.match(/<Endpoint>([^<]+)<\/Endpoint>/)[1].split('.')[1]
 
-        return request(meth, fname, body)
-      end
+        request(meth, fname, body)
 
-      # done, now respond
+      elsif r.code >= 400 && r.code != 404 && r.code < 500
 
-      case r.code
-        when 200, 204; return r.body
-        when 404; return nil
-      end if meth == :get
+        fail ArgumentError.new(r.error_message)
 
-      case r.code
-        when 200, 204; nil
-        when 400..499; raise ArgumentError.new(r.error_message)
-        else r
+      else
+
+        r
       end
     end
 

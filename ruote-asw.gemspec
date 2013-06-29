@@ -24,6 +24,7 @@ Amazon Simple Workflow (SWF) storage for ruote (a workflow engine)
     '*.gemspec', '*.txt', '*.md'
   ]
 
+  s.add_runtime_dependency 'rufus-lru'
   s.add_runtime_dependency 'ruote', ">= #{s.version.to_s.split('.')[0, 3].join('.')}"
   s.add_runtime_dependency 'net-http-persistent', '>= 2.8'
 

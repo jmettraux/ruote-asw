@@ -113,6 +113,7 @@ module Ruote::Asw
     class Response
 
       attr_reader :start, :duration
+      attr_accessor :content # for 304s
 
       def initialize(res, start)
 

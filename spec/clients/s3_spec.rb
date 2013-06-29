@@ -28,6 +28,7 @@ describe Ruote::Asw::S3Client do
     let(:client) {
 
       Ruote::Asw::S3Client.new(nil, aki, sak, 'ruote-asw')
+      #Ruote::Asw::S3Client.new(nil, aki, sak, 'ruote-asw', :no_cache => true)
     }
 
     describe '#put' do
@@ -40,6 +41,19 @@ describe Ruote::Asw::S3Client do
 
         r.should == nil
         client.get(fname).should == 'test 1 2 3'
+      end
+
+      it 'caches (conditional GET)' do
+
+        fname = new_fname
+        content = 'shiosai no memori'
+
+        client.cache.keys.should == []
+
+        client.put(fname, content)
+
+        client.cache.keys.should == [ fname ]
+        client.cache.values[0][1].should == content
       end
 
       it 'deflates and uploads .zlib files' do
@@ -90,6 +104,17 @@ describe Ruote::Asw::S3Client do
       it 'returns nil if there is no file (.json)' do
 
         client.get('nada.json').should == nil
+      end
+
+      it 'caches (conditional GET)' do
+
+        fname = new_fname
+        client.put(fname, 'hello from Edo S3')
+        client.cache.clear
+
+        client.get(fname).should == 'hello from Edo S3'
+        client.cache.keys.should == [ fname ]
+        client.cache.values[0][1].should == 'hello from Edo S3'
       end
     end
 
@@ -208,7 +233,7 @@ describe Ruote::Asw::S3Client do
 
         bn = new_bucket_name
 
-        Ruote::Asw::S3Client.new(nil, aki, sak, bn, 'edo')
+        Ruote::Asw::S3Client.new(nil, aki, sak, bn, :region => 'edo')
 
         Ruote::Asw::S3Client.list_buckets(aki, sak).should include(bn)
       end
@@ -226,7 +251,7 @@ describe Ruote::Asw::S3Client do
 
         Ruote::Asw::S3Client.list_buckets(aki, sak).should include('ruote-asw')
 
-        Ruote::Asw::S3Client.new(nil, aki, sak, 'ruote-asw', 'edo')
+        Ruote::Asw::S3Client.new(nil, aki, sak, 'ruote-asw', :region => 'edo')
 
         Ruote::Asw::S3Client.list_buckets(aki, sak).should include('ruote-asw')
       end

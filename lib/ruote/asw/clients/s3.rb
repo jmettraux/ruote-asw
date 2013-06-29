@@ -25,6 +25,7 @@
 require 'cgi'
 require 'zlib'
 
+require 'rufus-lru'
 require 'ruote/asw/clients/http'
 
 
@@ -32,20 +33,21 @@ module Ruote::Asw
 
   class S3Client
 
-    attr_reader :owner
+    attr_reader :owner, :cache
 
     def initialize(
       owner,
       access_key_id,
       secret_access_key,
       bucket,
-      region=nil
+      opts={}
     )
 
       @owner = owner
       @aki = access_key_id
       @sak = secret_access_key
       @bucket = bucket
+      @opts = opts
 
       raise ArgumentError.new(
         'invalid AWS access key and/or secret access key'
@@ -55,7 +57,11 @@ module Ruote::Asw
 
       @http = HttpClient.new('ruote_asw_s3')
 
-      self.class.create_bucket(@aki, @sak, bucket, region, true) if region
+      if r = @opts[:region]
+        self.class.create_bucket(@aki, @sak, bucket, r, true)
+      end
+
+      @cache = Rufus::Lru::Hash.new(35)
     end
 
     def last_request
@@ -67,7 +73,8 @@ module Ruote::Asw
 
       split = fname.split('.')
 
-      content = Rufus::Json.encode(content) if split.include?('json')
+      con = content
+      con = Rufus::Json.encode(content) if split.include?('json')
 
       #Zlib::BEST_COMPRESSION
       #Zlib::BEST_SPEED
@@ -75,12 +82,14 @@ module Ruote::Asw
         #
         # go for best_compression for now
 
-      content =
+      con =
         Zlib::Deflate.deflate(
-          content, Zlib::BEST_COMPRESSION
+          con, Zlib::BEST_COMPRESSION
         ) if split.last == 'zlib'
 
-      request(:put, fname, content)
+      res = request(:put, fname, con)
+
+      do_cache(fname, content, res)
 
       nil
     end
@@ -92,11 +101,14 @@ module Ruote::Asw
       res = request(:get, fname)
 
       return nil if res.code == 404
+      return res.content if res.code == 304
 
       content = res.body
 
       content = Zlib::Inflate.inflate(content) if split.last == 'zlib'
       content = Rufus::Json.decode(content) if split.include?('json')
+
+      do_cache(fname, content, res)
 
       content
     end
@@ -119,6 +131,8 @@ module Ruote::Asw
 
         request(:delete, fname_s)
       end
+
+      Array(fname_s).each { |n| @cache.delete(n) }
 
       nil
     end
@@ -202,6 +216,17 @@ module Ruote::Asw
 
     protected
 
+    def do_cache(fname, content, res)
+
+      return unless res.code == 200
+      return if @opts[:no_cache]
+
+      etag = res.headers['etag']
+      return unless etag
+
+      @cache[fname] = [ etag, content ]
+    end
+
     def request(meth, fname, body=nil)
 
       bucket = @bucket ? "#{@bucket}." : ''
@@ -209,9 +234,14 @@ module Ruote::Asw
       uri = URI.parse("https://#{bucket}#{@endpoint}.amazonaws.com/#{fname}")
       headers = {}
 
+      etag, content = meth == :get ? @cache[fname] : nil
+      headers['if-none-match'] = etag if etag
+
       sign(meth, uri, headers, body)
 
       r = @http.request(meth, uri, headers, body)
+
+      r.content = content if r.code == 304
 
       if r.code == 307
         #

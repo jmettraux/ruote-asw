@@ -73,6 +73,13 @@ module Ruote::Asw
       nil
     end
 
+    def del_execution(wfid)
+
+      @client.delete("wf-#{wfid}.json.zlib")
+
+      nil
+    end
+
     def expression_wfids(opts)
 
       @client.list('wf-').collect { |fn| fn.split('.').first[3..-1] }

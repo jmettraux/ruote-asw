@@ -35,6 +35,8 @@ describe 'ruote-asw and flows' do
     wfid = @dboard.launch(pdef)
     @dboard.wait_for('decision_done')
 
+    sleep(0.150) # give time to S3 to acknowledge execution file
+
     @dboard.storage.store.get_execution(wfid)['schedules'].size.should == 1
 
     @dboard.wait_for('dispatched')

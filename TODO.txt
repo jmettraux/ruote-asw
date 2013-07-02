@@ -8,6 +8,7 @@
 [o] activity worker: reply immediately?, then signal?
     have a timer...
     avoid heartbeat and co...
+[o] add spec to make sure that schedule are removed when triggered
 
 [ ] nextPageToken and fetch_next... (by default, do not fetch)
 [ ] throttling...
@@ -23,8 +24,6 @@
 
 [x] should "dispatched" be given back when "respondActivityTaskCompleted"?
     keep it in the activity worker for now
-
-[ ] add spec to make sure that schedule are removed when triggered
 
 [ ] Dashboard#terminate(wfid) ? (runId) ?
 

@@ -10,7 +10,26 @@ The life impulse of each flow execution is provided by SWF while the ruote state
 
 ## usage
 
-TODO
+(supposes you're familiar with ruote's concepts)
+
+Since SWF distinguishes between "decisions" (episodes of workflow execution) and "activities" (actual handout of work), ruote-asw specializes the ruote workers into Ruote::Asw::DecisionWorker and ::ActivityWorker.
+
+To start a combo decision + activity worker:
+
+```ruby
+@dboard =
+  Ruote::Dashboard.new(
+    Ruote::Asw::DecisionWorker.new(
+    Ruote::Asw::ActivityWorker.new(
+      Ruote::Asw::Storage.new(
+        aws_access_key_id, asw_secret_access_key, region, domain, {}))))
+```
+
+(same indentation for the decision and the activity worker, to indicate there is no dependence from one to the other)
+
+Of course, one can start decision and activity workers in their own decicated Ruby processes. The initialization above is mostly a compact setup used for testing/spec'ing.
+
+(to be continued)
 
 
 ### running the specs

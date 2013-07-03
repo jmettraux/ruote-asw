@@ -199,10 +199,7 @@ module Ruote::Asw
 
     def fetch_msgs
 
-      r = @msgs.dup
-      @msgs.clear
-
-      r
+      @msgs
     end
 
     def reserve(doc)

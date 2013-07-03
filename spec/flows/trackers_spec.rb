@@ -29,7 +29,7 @@ describe 'ruote-asw and flows' do
         concurrence do
           sequence do
             listen :to => 'alpha'
-            echo 'ok'
+            set 'v:/seen' => true
           end
           sequence do
             alpha
@@ -38,9 +38,10 @@ describe 'ruote-asw and flows' do
       end
 
     wfid = @dboard.launch(pdef)
-    @dboard.wait_for(wfid)
+    r = @dboard.wait_for(wfid)
 
-    # TODO: continue me
+    r['action'].should == 'terminated'
+    r['variables']['seen'].should == true
   end
 end
 

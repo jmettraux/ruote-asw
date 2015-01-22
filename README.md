@@ -7,6 +7,8 @@ The life impulse of each flow execution is provided by SWF while the ruote state
 
 (This project is still in an early stage, be patient)
 
+(Update: this project is as dead as [https://github.com/jmettraux/ruote](ruote) is)
+
 
 ## usage
 
@@ -53,7 +55,7 @@ Set debug level to 1 for the http client and 2 for the SWF client (sw)
 
 ### "RequestExpiredException"
 
-Your computer's clock is too off. Resyncrhonize it (sudo service ntp restart).
+Your computer's clock is way too out of sync. Resynchronize it (`sudo service ntp restart`).
 
 
 ## license

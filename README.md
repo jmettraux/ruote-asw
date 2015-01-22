@@ -7,7 +7,7 @@ The life impulse of each flow execution is provided by SWF while the ruote state
 
 (This project is still in an early stage, be patient)
 
-(Update: this project is as dead as [https://github.com/jmettraux/ruote](ruote) is)
+(Update: this project is as dead as [ruote](http://ruote.io) is)
 
 
 ## usage
